@@ -28,7 +28,7 @@
             this.gradient.empty();
         }
     });
-
+    
     test('init', function(){
 
         equal(this.gradient.length, 0, 'test length first');
@@ -36,7 +36,7 @@
         this.gradient.append('#fff');
         equal(this.gradient.length, 1, 'test length after append');
 
-        equal(this.gradient.get().color.toString(), '#ffffff', 'get the first stop');
+        equal(this.gradient.get().color.toString(), '#fff', 'get the first stop');
 
         this.gradient.append('rgba(255, 255, 255, 0.7)');
         equal(this.gradient.length, 2,'test length after the second append');
@@ -46,29 +46,26 @@
         this.gradient.remove(1);
         equal(this.gradient.length, 1, 'test length after remove');
 
-
-
     });
 
     test('current', function() {
         this.gradient.empty();
 
-        this.gradient.insert('#ffffff');
+        this.gradient.insert('#fff');
         equal(this.gradient.current, 0, 'current should be set to 0 after first insert');
-        equal(this.gradient.get().color.toString(), '#ffffff', 'get the first stop');
+        equal(this.gradient.get().color.toString(), '#fff', 'get the first stop');
 
-        this.gradient.insert('#000000', undefined, 1);
+        this.gradient.insert('#000', undefined, 1);
         equal(this.gradient.current, 1, 'current should be set to 1 after second insert');
-        equal(this.gradient.get().color.toString(), '#000000', 'get the second stop');
+        equal(this.gradient.get().color.toString(), '#000', 'get the second stop');
         
         this.gradient.remove();
         equal(this.gradient.current, 0, 'current should be set to 0 after remove');
-        equal(this.gradient.get().color.toString(), '#ffffff', 'get the first stop');
+        equal(this.gradient.get().color.toString(), '#fff', 'get the first stop');
     });
 
 
     test('method empty', function(){
-
         this.gradient.empty();
         equal(this.gradient.length, 0, 'test gradient size after empty');
 
@@ -87,31 +84,31 @@
         equal(this.gradient.length, 1, 'gradient size should be 1 after insert');
         equal(this.gradient.current, 0, 'current should be set to 0 after first insert');
         equal(this.gradient.value.stops.length, 1, 'gradient stops size should be 1 after insert');
-        equal(this.gradient.get(0).color.toString(), '#ffffff', 'first color should be the same with the insert');
+        equal(this.gradient.get(0).color.toString(), '#fff', 'first color should be the same with the insert');
 
         this.gradient.insert('#aaa', undefined, 1);
         equal(this.gradient.length, 2, 'gradient size should be 2 after second insert');
         equal(this.gradient.current, 1, 'current should be set to 1 after second insert');
         equal(this.gradient.value.stops.length, 2, 'gradient stops size should be 2 after  secondinsert');
-        equal(this.gradient.get(0).color.toString(), '#ffffff', 'first color should be the same with the first insert');
-        equal(this.gradient.get(1).color.toString(), '#aaaaaa', 'second color should be the same with the second insert');
+        equal(this.gradient.get(0).color.toString(), '#fff', 'first color should be the same with the first insert');
+        equal(this.gradient.get(1).color.toString(), '#aaa', 'second color should be the same with the second insert');
 
         this.gradient.insert('#ccc', undefined, 2);
         equal(this.gradient.length, 3, 'gradient size should be 3 after second insert');
         equal(this.gradient.current, 2, 'current should be set to 2 after second insert');
         equal(this.gradient.value.stops.length, 3, 'gradient stops size should be 3 after  secondinsert');
-        equal(this.gradient.get(0).color.toString(), '#ffffff', 'first color should be the same with the first insert');
-        equal(this.gradient.get(1).color.toString(), '#aaaaaa', 'second color should be the same with the second insert');
-        equal(this.gradient.get(2).color.toString(), '#cccccc', 'third color should be the same with the third insert');
+        equal(this.gradient.get(0).color.toString(), '#fff', 'first color should be the same with the first insert');
+        equal(this.gradient.get(1).color.toString(), '#aaa', 'second color should be the same with the second insert');
+        equal(this.gradient.get(2).color.toString(), '#ccc', 'third color should be the same with the third insert');
 
         this.gradient.insert('#000', undefined, 2);
         equal(this.gradient.length, 4, 'gradient size should be 4 after fouth insert');
         equal(this.gradient.current, 2, 'current should be set to 2 after fouth insert');
         equal(this.gradient.value.stops.length, 4, 'gradient stops size should be 4 after fouth insert');
-        equal(this.gradient.get(0).color.toString(), '#ffffff', 'check the first color');
-        equal(this.gradient.get(1).color.toString(), '#aaaaaa', 'check the second color');
-        equal(this.gradient.get(2).color.toString(), '#000000', 'check the third color');
-        equal(this.gradient.get(3).color.toString(), '#cccccc', 'check the fourth color');
+        equal(this.gradient.get(0).color.toString(), '#fff', 'check the first color');
+        equal(this.gradient.get(1).color.toString(), '#aaa', 'check the second color');
+        equal(this.gradient.get(2).color.toString(), '#000', 'check the third color');
+        equal(this.gradient.get(3).color.toString(), '#ccc', 'check the fourth color');
     });
 
     test('angle', function() {
@@ -190,27 +187,27 @@
         equal(this.gradient.get(1).position, undefined, 'test second color stop position');
         equal(this.gradient.length, 2, 'test color stop count');
 
-        this.gradient.fromString('-moz-linear-gradient(left, rgba(248,80,50,1) 0%, rgba(241,111,92,1) 50%, rgba(240,47,23,1) 71%, rgba(231,56,39,1) 100%)');
+        this.gradient.fromString('-moz-linear-gradient(left, rgba(248,80,50,0.8) 0%, rgba(241,111,92,0.8) 50%, rgba(240,47,23,0.8) 71%, rgba(231,56,39,0.8) 100%)');
         equal(this.gradient._prefix, '-moz-', 'test moz prefix');
         equal(this.gradient._type, 'LINEAR', 'test linear type');
         equal(this.gradient.angle(), 270, 'test angle');
-        equal(this.gradient.get(0).color.toString(), 'rgba(248, 80, 50, 1)', 'test first color stop');
-        equal(this.gradient.get(1).color.toString(), 'rgba(241, 111, 92, 1)', 'test second color stop');
-        equal(this.gradient.get(2).color.toString(), 'rgba(240, 47, 23, 1)', 'test third color stop');
-        equal(this.gradient.get(3).color.toString(), 'rgba(231, 56, 39, 1)', 'test fourth color stop');
+        equal(this.gradient.get(0).color.toString(), 'rgba(248, 80, 50, 0.8)', 'test first color stop');
+        equal(this.gradient.get(1).color.toString(), 'rgba(241, 111, 92, 0.8)', 'test second color stop');
+        equal(this.gradient.get(2).color.toString(), 'rgba(240, 47, 23, 0.8)', 'test third color stop');
+        equal(this.gradient.get(3).color.toString(), 'rgba(231, 56, 39, 0.8)', 'test fourth color stop');
         equal(this.gradient.get(0).position, 0, 'test first color stop position');
         equal(this.gradient.get(1).position, 0.5, 'test second color stop position');
         equal(this.gradient.get(2).position, 0.71, 'test third color stop position');
         equal(this.gradient.get(3).position, 1, 'test fourth color stop position');
         equal(this.gradient.length, 4, 'test color stop count');
 
-        this.gradient.fromString('linear-gradient(to bottom, hsla(0,0%, 100%,1), hsla( 0,0%,96%,1) 47%, hsla(0,0%,93%,1))');
+        this.gradient.fromString('linear-gradient(to bottom, hsla(0,0%, 100%,0.8), hsla( 0,0%,96%,0.8) 47%, hsla(0,0%,93%,0.8))');
         equal(this.gradient._prefix, null, 'test standare prefix');
         equal(this.gradient._type, 'LINEAR', 'test linear type');
         equal(this.gradient.angle(), 180, 'test angle');
-        equal(this.gradient.get(0).color.toString(), 'hsla(0, 0%, 100%, 1)', 'test first color stop');
-        equal(this.gradient.get(1).color.toString(), 'hsla(0, 0%, 96%, 1)', 'test second color stop');
-        equal(this.gradient.get(2).color.toString(), 'hsla(0, 0%, 93%, 1)', 'test third color stop');
+        equal(this.gradient.get(0).color.toString(), 'hsla(0, 0%, 100%, 0.8)', 'test first color stop');
+        equal(this.gradient.get(1).color.toString(), 'hsla(0, 0%, 96%, 0.8)', 'test second color stop');
+        equal(this.gradient.get(2).color.toString(), 'hsla(0, 0%, 93%, 0.8)', 'test third color stop');
         equal(this.gradient.get(0).position, undefined, 'test first color stop position');
         equal(this.gradient.get(1).position, 0.47, 'test second color stop position');
         equal(this.gradient.get(2).position, undefined, 'test third color stop position');

@@ -9,7 +9,7 @@
     'use strict';
 
     var RegExpStrings = (function(){
-        var color = /(?:rgba|rgb|hsla|hsl)\s*\([\s\d,%]+\)|#[a-z0-9]{3,6}|[a-z]+/i,
+        var color = /(?:rgba|rgb|hsla|hsl)\s*\([\s\d\.,%]+\)|#[a-z0-9]{3,6}|[a-z]+/i,
             position = /\d{1,3}%/i,
             angle = /(?:to ){0,1}(?:(?:top|left|right|bottom)\s*){1,2}|\d+deg/i,
             stop = new RegExp('(' + color.source + ')\\s*(' + position.source + '){0,1}', 'i'),
@@ -36,7 +36,7 @@
                     a: 1
                 };
             },
-            to: function(color) {
+            to: function(color, instance) {
                 return 'rgb(' + color.r + ', ' + color.g + ', ' + color.b + ')';
             }
         }
@@ -55,19 +55,20 @@
         'left top'     : 315,
         'top left'     : 315
     };
-    function isPercentage() {
-
+    function isPercentage(n) {
+        return typeof n === "string" && n.indexOf('%') != -1;
     }
 
     function isLength(){
 
     }
 
-    var Gradient = $.asGradient = function(string) {
+    var Gradient = $.asGradient = function(string, options) {
         this.value = {
             angle: 0,
             stops: []
         };
+        this.options = $.extend(true, {}, Gradient.defaults, options);
 
         this._type = 'LINEAR';
         this._prefix = null;
@@ -108,8 +109,8 @@
             }
 
             var stop = {
-                color: new Color(color),
-                position: position
+                color: new Color(color, this.options.color),
+                position: Gradient.parsePosition(position)
             };
             
             this.value.stops.splice(index, 0, stop);
@@ -219,16 +220,21 @@
         var matched;
         if ((matched = RegExpStrings.STOP.exec(string)) != null) {
             var position;
-            if(typeof matched[2] !== 'undefined' && matched[2].substr(-1) === '%'){
-                position = parseFloat(matched[2].slice(0, -1) / 100)
-            }
+            
             return {
                 color: matched[1],
-                position: position
+                position: Gradient.parsePosition(matched[2])
             };
         } else {
             return false;
         }
+    };
+    Gradient.parsePosition = function(string) {
+        if(typeof string === 'string' && string.substr(-1) === '%'){
+            string = parseFloat(string.slice(0, -1) / 100);
+        }
+
+        return string;
     };
     Gradient.parseAngle = function(string) {
         if(typeof string === 'string'){
@@ -253,6 +259,21 @@
             }
         }
         return value;
+    };
+    Gradient.defaults = {
+        forceStandard: true,
+        color: {
+            format: 'rgba',
+            reduceAlpha: true,
+            shortenHex: true,
+            zeroAlphaAsTransparent: false,
+            invalidValue: {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 1
+            }
+        }
     };
 }(window, document, jQuery, (function($) {
     if ($.asColor === undefined) {

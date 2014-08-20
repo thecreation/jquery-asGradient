@@ -24,11 +24,12 @@
     "grunt-contrib-clean": "*",
     "grunt-contrib-concat": "*",
     "grunt-contrib-jshint": "*",
-    "grunt-contrib-qunit": "^0.5.2",
+    "grunt-contrib-qunit": "*",
     "grunt-contrib-uglify": "*",
     "grunt-contrib-watch": "*",
+    "grunt-contrib-copy": "*",
     "grunt-jsbeautifier": "*",
-    "grunt-jscs": "~0.6.2",
+    "grunt-jscs": "*",
     "grunt-text-replace": "*",
     "load-grunt-tasks": "*"
   }

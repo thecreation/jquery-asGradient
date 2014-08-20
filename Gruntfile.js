@@ -103,6 +103,20 @@ module.exports = function(grunt) {
             }
         },
 
+        copy: {
+            bower: {
+                files: [{
+                    expand: true,
+                    flatten: true,
+                    cwd: 'bower_components/',
+                    src: [
+                        'jquery-asColor/dist/*.js',
+                    ],
+                    dest: 'libs/'
+                }]
+            }
+        },
+
         replace: {
             bower: {
                 src: ['bower.json'],

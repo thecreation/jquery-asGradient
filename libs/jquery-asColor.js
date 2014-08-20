@@ -1,10 +1,10 @@
-/*! asColor - v0.1.3 - 2014-08-19
+/*! asColor - v0.2.0 - 2014-08-20
 * https://github.com/amazingSurge/asColor
 * Copyright (c) 2014 amazingSurge; Licensed GPL */
 (function(window, document, $, undefined) {
     'use strict';
 
-    var expandHex = function(hex) {
+    function expandHex(hex) {
         if (!hex) {
             return null;
         }
@@ -12,113 +12,172 @@
             hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
         }
         return hex.length === 6 ? hex : null;
-    };
+    }
 
-    var CssColorStrings = {
-        RGB: {
-            match: /rgb\(\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*\)/i,
-            parse: function(result) {
-                return {
-                    r: (result[1].substr(-1) === '%') ? parseInt(result[1].slice(0, -1) * 2.55, 10) : parseInt(result[1], 10),
-                    g: (result[2].substr(-1) === '%') ? parseInt(result[2].slice(0, -1) * 2.55, 10) : parseInt(result[2], 10),
-                    b: (result[3].substr(-1) === '%') ? parseInt(result[3].slice(0, -1) * 2.55, 10) : parseInt(result[3], 10),
-                    a: 1
-                };
-            },
-            to: function(color) {
-                return 'rgb(' + color.r + ', ' + color.g + ', ' + color.b + ')';
-            }
-        },
-        RGBA: {
-            match: /rgba\(\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*,\s*(\d?(?:\.\d+)?)\s*\)/i,
-            parse: function(result) {
-                return {
-                    r: (result[1].substr(-1) === '%') ? parseInt(result[1].slice(0, -1) * 2.55, 10) : parseInt(result[1], 10),
-                    g: (result[2].substr(-1) === '%') ? parseInt(result[2].slice(0, -1) * 2.55, 10) : parseInt(result[2], 10),
-                    b: (result[3].substr(-1) === '%') ? parseInt(result[3].slice(0, -1) * 2.55, 10) : parseInt(result[3], 10),
-                    a: parseFloat(result[4])
-                };
-            },
-            to: function(color) {
-                return 'rgba(' + color.r + ', ' + color.g + ', ' + color.b + ', ' + color.a + ')';
-            }
-        },
-        HSL: {
-            match: /hsl\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*\)/i,
-            parse: function(result) {
-                var hsl = {
-                    h: ((result[1] % 360) + 360) % 360,
-                    s: parseFloat(result[2] / 100),
-                    l: parseFloat(result[3] / 100),
-                    a: 1
-                };
+    function shrinkHex(hex) {
+        if (hex.length === 6 && hex[0] === hex[1] && hex[2] === hex[3] && hex[4] === hex[5]) {
+            return hex[0] + hex[2] + hex[4];
+        } else {
+            return hex;
+        }
+    }
 
-                return AsColor.HSLToRGB(hsl);
-            },
-            to: function(color) {
-                var hsl = AsColor.RGBToHSL(color);
-                return 'hsl(' + parseInt(hsl.h, 10) + ', ' + Math.round(hsl.s * 100) + '%, ' + Math.round(hsl.l * 100) + '%)';
-            }
-        },
-        HSLA: {
-            match: /hsla\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d?(?:\.\d+)?)\s*\)/i,
-            parse: function(result) {
-                var hsla = {
-                    h: ((result[1] % 360) + 360) % 360,
-                    s: parseFloat(result[2] / 100),
-                    l: parseFloat(result[3] / 100),
-                    a: parseFloat(result[4])
-                };
+    function parseIntFromHex(val) {
+        return parseInt(val, 16);
+    }
 
-                return AsColor.HSLToRGB(hsla);
-            },
-            to: function(color) {
-                var hsl = AsColor.RGBToHSL(color);
-                return 'hsla(' + parseInt(hsl.h, 10) + ', ' + Math.round(hsl.s * 100) + '%, ' + Math.round(hsl.l * 100) + '%, ' + color.a + ')';
-            }
-        },
-        HEX: {
-            match: /#([a-f0-9]{6}|[a-f0-9]{3})/i,
-            parse: function(result) {
-                var hex = result[1];
-                if (hex.length === 3) {
-                    hex = expandHex(hex);
-                }
+    function isPercentage(n) {
+        return typeof n === 'string' && n.indexOf('%') != -1;
+    }
 
-                return {
-                    r: parseInt(hex.substr(0, 2), 16),
-                    g: parseInt(hex.substr(2, 2), 16),
-                    b: parseInt(hex.substr(4, 2), 16),
-                    a: 1
-                };
-            },
-            to: function(color) {
-                var hex = [color.r.toString(16), color.g.toString(16), color.b.toString(16)];
-                $.each(hex, function(nr, val) {
-                    if (val.length === 1) {
-                        hex[nr] = '0' + val;
-                    }
-                });
-                return '#' + hex.join('');
-            }
-        },
-        TRANSPARENT: {
-            match: /transparent/i,
-            parse: function() {
-                return {
-                    r: 0,
-                    g: 0,
-                    b: 0,
-                    a: 0
-                };
-            },
-            to: function() {
-                return 'transparent';
+    function conventPercentageToRgb(n) {
+        return parseInt(n.slice(0, -1) * 2.55, 10);
+    }
+
+    function convertPercentageToFloat(n) {
+        return parseFloat(n.slice(0, -1) / 100, 10);
+    }
+
+    function flip(o) {
+        var flipped = {};
+        for (var i in o) {
+            if (o.hasOwnProperty(i)) {
+                flipped[o[i]] = i;
             }
         }
-    };
+        return flipped;
+    }
 
-    var AsColor = $.asColor = function(string, format) {
+    var CssColorStrings = (function() {
+        var CSS_INTEGER = '[-\\+]?\\d+%?';
+        var CSS_NUMBER = '[-\\+]?\\d*\\.\\d+%?';
+        var CSS_UNIT = '(?:' + CSS_NUMBER + ')|(?:' + CSS_INTEGER + ')';
+
+        var PERMISSIVE_MATCH3 = '[\\s|\\(]+(' + CSS_UNIT + ')[,|\\s]+(' + CSS_UNIT + ')[,|\\s]+(' + CSS_UNIT + ')\\s*\\)?';
+        var PERMISSIVE_MATCH4 = '[\\s|\\(]+(' + CSS_UNIT + ')[,|\\s]+(' + CSS_UNIT + ')[,|\\s]+(' + CSS_UNIT + ')[,|\\s]+(' + CSS_UNIT + ')\\s*\\)?';
+
+        return {
+            RGB: {
+                match: new RegExp('rgb' + PERMISSIVE_MATCH3, 'i'),
+                parse: function(result) {
+                    return {
+                        r: isPercentage(result[1]) ? conventPercentageToRgb(result[1]) : parseInt(result[1], 10),
+                        g: isPercentage(result[2]) ? conventPercentageToRgb(result[2]) : parseInt(result[2], 10),
+                        b: isPercentage(result[3]) ? conventPercentageToRgb(result[3]) : parseInt(result[3], 10)
+                    };
+                },
+                to: function(color) {
+                    return 'rgb(' + color.r + ', ' + color.g + ', ' + color.b + ')';
+                }
+            },
+            RGBA: {
+                match: new RegExp('rgba' + PERMISSIVE_MATCH4, 'i'),
+                parse: function(result) {
+                    return {
+                        r: isPercentage(result[1]) ? conventPercentageToRgb(result[1]) : parseInt(result[1], 10),
+                        g: isPercentage(result[2]) ? conventPercentageToRgb(result[2]) : parseInt(result[2], 10),
+                        b: isPercentage(result[3]) ? conventPercentageToRgb(result[3]) : parseInt(result[3], 10),
+                        a: parseFloat(result[4])
+                    };
+                },
+                to: function(color) {
+                    return 'rgba(' + color.r + ', ' + color.g + ', ' + color.b + ', ' + color.a + ')';
+                }
+            },
+            HSL: {
+                match: new RegExp('hsl' + PERMISSIVE_MATCH3, 'i'),
+                parse: function(result) {
+                    var hsl = {
+                        h: ((result[1] % 360) + 360) % 360,
+                        s: isPercentage(result[2]) ? convertPercentageToFloat(result[2]) : parseFloat(result[2], 10),
+                        l: isPercentage(result[3]) ? convertPercentageToFloat(result[3]) : parseFloat(result[3], 10)
+                    };
+
+                    return AsColor.HSLToRGB(hsl);
+                },
+                to: function(color) {
+                    var hsl = AsColor.RGBToHSL(color);
+                    return 'hsl(' + parseInt(hsl.h, 10) + ', ' + Math.round(hsl.s * 100) + '%, ' + Math.round(hsl.l * 100) + '%)';
+                }
+            },
+            HSLA: {
+                match: new RegExp('hsla' + PERMISSIVE_MATCH4, 'i'),
+                parse: function(result) {
+                    var hsla = {
+                        h: ((result[1] % 360) + 360) % 360,
+                        s: isPercentage(result[2]) ? convertPercentageToFloat(result[2]) : parseFloat(result[2], 10),
+                        l: isPercentage(result[3]) ? convertPercentageToFloat(result[3]) : parseFloat(result[3], 10),
+                        a: parseFloat(result[4])
+                    };
+
+                    return AsColor.HSLToRGB(hsla);
+                },
+                to: function(color) {
+                    var hsl = AsColor.RGBToHSL(color);
+                    return 'hsla(' + parseInt(hsl.h, 10) + ', ' + Math.round(hsl.s * 100) + '%, ' + Math.round(hsl.l * 100) + '%, ' + color.a + ')';
+                }
+            },
+            HEX: {
+                match: /^#([a-f0-9]{6}|[a-f0-9]{3})/i,
+                parse: function(result) {
+                    var hex = result[1];
+
+                    return AsColor.HEXtoRGB(hex);
+                },
+                to: function(color, instance) {
+                    var hex = [color.r.toString(16), color.g.toString(16), color.b.toString(16)];
+                    $.each(hex, function(nr, val) {
+                        if (val.length === 1) {
+                            hex[nr] = '0' + val;
+                        }
+                    });
+                    hex = hex.join('');
+                    if (instance) {
+                        if (instance.options.hexUseName) {
+                            var hasName = AsColor.hasNAME(color);
+                            if (hasName) {
+                                return hasName;
+                            }
+                        }
+                        if (instance.options.shortenHex) {
+                            hex = shrinkHex(hex);
+                        }
+                    }
+                    return '#' + hex;
+                }
+            },
+            TRANSPARENT: {
+                match: /transparent/i,
+                parse: function() {
+                    return {
+                        r: 0,
+                        g: 0,
+                        b: 0,
+                        a: 0
+                    };
+                },
+                to: function() {
+                    return 'transparent';
+                }
+            },
+            NAME: {
+                match: /^\w+$/i,
+                parse: function(result) {
+                    return AsColor.NAMEtoRGB(result[0]);
+                },
+                to: function(color, instance) {
+                    return AsColor.RGBtoNAME(color, instance ? instance.options.nameDegradation : undefined);
+                }
+            }
+        };
+    })();
+
+    var AsColor = $.asColor = function(string, format, options) {
+        if (typeof format === 'object') {
+            options = format;
+            format = undefined;
+        }
+        this.options = $.extend(true, {}, AsColor.defaults, options);
         this.value = {
             r: 0,
             g: 0,
@@ -129,6 +188,7 @@
             a: 1
         };
         this._format = 'HEX';
+        this._valid = true;
 
         this.init(string, format);
     };
@@ -138,22 +198,19 @@
         init: function(string, format) {
             if (typeof format !== 'undefined') {
                 this.format(format);
+                this.fromString(string);
             } else {
-                for (var i in CssColorStrings) {
-                    var matched = null;
-                    if ((matched = CssColorStrings[i].match.exec(string)) != null) {
-                        this.format(i);
-                        break;
-                    }
-                }
+                this.fromString(string, true);
             }
-            this.from(string);
+        },
+        isValid: function() {
+            return this._valid;
         },
         val: function(value) {
             if (typeof value === 'undefined') {
                 return this.toString();
             } else {
-                this.from(value);
+                this.fromString(value);
                 return this;
             }
         },
@@ -171,13 +228,24 @@
                 this.value.a = value;
             }
         },
-        from: function(string) {
+        fromString: function(string, updateFormat) {
             if (typeof string === 'string') {
-                var matched = null;
+                string = $.trim(string);
+                var matched = null,
+                    rgb;
+                this._valid = false;
                 for (var i in CssColorStrings) {
                     if ((matched = CssColorStrings[i].match.exec(string)) != null) {
-                        this.set(CssColorStrings[i].parse(matched));
-                        break;
+                        rgb = CssColorStrings[i].parse(matched);
+
+                        if (rgb) {
+                            this.set(rgb);
+                            this._valid = true;
+                            if (updateFormat === true) {
+                                this.format(i);
+                            }
+                            break;
+                        }
                     }
                 }
             } else if (typeof string === 'object') {
@@ -209,10 +277,31 @@
             return CssColorStrings.HEX.to(this.value);
         },
         toString: function() {
-            if (this.value.a === 0) {
-                return CssColorStrings.TRANSPARENT.to(this.value);
+            var value = this.value;
+            if (!this._valid) {
+                value = this.options.invalidValue;
+
+                if (typeof value === 'string') {
+                    return value;
+                }
             }
-            return CssColorStrings[this.format()].to(this.value);
+
+            if (value.a === 0 && this.options.zeroAlphaAsTransparent) {
+                return CssColorStrings.TRANSPARENT.to(value, this);
+            }
+
+            var format = this._format;
+            if (this.options.reduceAlpha && value.a === 1) {
+                switch (format) {
+                    case 'RGBA':
+                        format = 'RGB';
+                        break;
+                    case 'HSLA':
+                        format = 'HSL';
+                        break;
+                }
+            }
+            return CssColorStrings[format].to(value, this);
         },
         get: function() {
             return this.value;
@@ -391,4 +480,219 @@
             b: Math.round(b * 255)
         };
     };
+    AsColor.HEXtoRGB = function(hex) {
+        if (hex.indexOf('#') === 0) {
+            hex = hex.substr(1);
+        }
+        if (hex.length === 3) {
+            hex = expandHex(hex);
+        }
+        return {
+            r: parseIntFromHex(hex.substr(0, 2)),
+            g: parseIntFromHex(hex.substr(2, 2)),
+            b: parseIntFromHex(hex.substr(4, 2))
+        };
+    };
+    AsColor.isNAME = function(string) {
+        if (AsColor.names.hasOwnProperty(string)) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+    AsColor.NAMEtoHEX = function(name) {
+        if (AsColor.names.hasOwnProperty(name)) {
+            return '#' + AsColor.names[name];
+        }
+    };
+    AsColor.NAMEtoRGB = function(name) {
+        var hex = AsColor.NAMEtoHEX(name);
+        if (hex) {
+            return AsColor.HEXtoRGB(hex);
+        }
+    };
+    AsColor.hasNAME = function(rgb) {
+        var hex = AsColor.RGBToHEX(rgb);
+
+        if (hex.indexOf('#') === 0) {
+            hex = hex.substr(1);
+        }
+        hex = shrinkHex(hex);
+
+        if (AsColor.hexNames.hasOwnProperty(hex)) {
+            return AsColor.hexNames[hex];
+        } else {
+            return false;
+        }
+    },
+    AsColor.RGBtoNAME = function(rgb, degradation) {
+        var hasName = AsColor.hasNAME(rgb);
+        if (hasName) {
+            return hasName;
+        } else {
+            if (typeof degradation === 'undefined') {
+                degradation = AsColor.defaults.nameDegradation;
+            }
+            return CssColorStrings[degradation.toUpperCase()].to(rgb);
+        }
+    };
+    AsColor.defaults = {
+        shortenHex: false,
+        hexUseName: false,
+        reduceAlpha: false,
+        nameDegradation: 'HEX',
+        invalidValue: '',
+        zeroAlphaAsTransparent: true
+    };
+    AsColor.names = {
+        aliceblue: 'f0f8ff',
+        antiquewhite: 'faebd7',
+        aqua: '0ff',
+        aquamarine: '7fffd4',
+        azure: 'f0ffff',
+        beige: 'f5f5dc',
+        bisque: 'ffe4c4',
+        black: '000',
+        blanchedalmond: 'ffebcd',
+        blue: '00f',
+        blueviolet: '8a2be2',
+        brown: 'a52a2a',
+        burlywood: 'deb887',
+        burntsienna: 'ea7e5d',
+        cadetblue: '5f9ea0',
+        chartreuse: '7fff00',
+        chocolate: 'd2691e',
+        coral: 'ff7f50',
+        cornflowerblue: '6495ed',
+        cornsilk: 'fff8dc',
+        crimson: 'dc143c',
+        cyan: '0ff',
+        darkblue: '00008b',
+        darkcyan: '008b8b',
+        darkgoldenrod: 'b8860b',
+        darkgray: 'a9a9a9',
+        darkgreen: '006400',
+        darkgrey: 'a9a9a9',
+        darkkhaki: 'bdb76b',
+        darkmagenta: '8b008b',
+        darkolivegreen: '556b2f',
+        darkorange: 'ff8c00',
+        darkorchid: '9932cc',
+        darkred: '8b0000',
+        darksalmon: 'e9967a',
+        darkseagreen: '8fbc8f',
+        darkslateblue: '483d8b',
+        darkslategray: '2f4f4f',
+        darkslategrey: '2f4f4f',
+        darkturquoise: '00ced1',
+        darkviolet: '9400d3',
+        deeppink: 'ff1493',
+        deepskyblue: '00bfff',
+        dimgray: '696969',
+        dimgrey: '696969',
+        dodgerblue: '1e90ff',
+        firebrick: 'b22222',
+        floralwhite: 'fffaf0',
+        forestgreen: '228b22',
+        fuchsia: 'f0f',
+        gainsboro: 'dcdcdc',
+        ghostwhite: 'f8f8ff',
+        gold: 'ffd700',
+        goldenrod: 'daa520',
+        gray: '808080',
+        green: '008000',
+        greenyellow: 'adff2f',
+        grey: '808080',
+        honeydew: 'f0fff0',
+        hotpink: 'ff69b4',
+        indianred: 'cd5c5c',
+        indigo: '4b0082',
+        ivory: 'fffff0',
+        khaki: 'f0e68c',
+        lavender: 'e6e6fa',
+        lavenderblush: 'fff0f5',
+        lawngreen: '7cfc00',
+        lemonchiffon: 'fffacd',
+        lightblue: 'add8e6',
+        lightcoral: 'f08080',
+        lightcyan: 'e0ffff',
+        lightgoldenrodyellow: 'fafad2',
+        lightgray: 'd3d3d3',
+        lightgreen: '90ee90',
+        lightgrey: 'd3d3d3',
+        lightpink: 'ffb6c1',
+        lightsalmon: 'ffa07a',
+        lightseagreen: '20b2aa',
+        lightskyblue: '87cefa',
+        lightslategray: '789',
+        lightslategrey: '789',
+        lightsteelblue: 'b0c4de',
+        lightyellow: 'ffffe0',
+        lime: '0f0',
+        limegreen: '32cd32',
+        linen: 'faf0e6',
+        magenta: 'f0f',
+        maroon: '800000',
+        mediumaquamarine: '66cdaa',
+        mediumblue: '0000cd',
+        mediumorchid: 'ba55d3',
+        mediumpurple: '9370db',
+        mediumseagreen: '3cb371',
+        mediumslateblue: '7b68ee',
+        mediumspringgreen: '00fa9a',
+        mediumturquoise: '48d1cc',
+        mediumvioletred: 'c71585',
+        midnightblue: '191970',
+        mintcream: 'f5fffa',
+        mistyrose: 'ffe4e1',
+        moccasin: 'ffe4b5',
+        navajowhite: 'ffdead',
+        navy: '000080',
+        oldlace: 'fdf5e6',
+        olive: '808000',
+        olivedrab: '6b8e23',
+        orange: 'ffa500',
+        orangered: 'ff4500',
+        orchid: 'da70d6',
+        palegoldenrod: 'eee8aa',
+        palegreen: '98fb98',
+        paleturquoise: 'afeeee',
+        palevioletred: 'db7093',
+        papayawhip: 'ffefd5',
+        peachpuff: 'ffdab9',
+        peru: 'cd853f',
+        pink: 'ffc0cb',
+        plum: 'dda0dd',
+        powderblue: 'b0e0e6',
+        purple: '800080',
+        red: 'f00',
+        rosybrown: 'bc8f8f',
+        royalblue: '4169e1',
+        saddlebrown: '8b4513',
+        salmon: 'fa8072',
+        sandybrown: 'f4a460',
+        seagreen: '2e8b57',
+        seashell: 'fff5ee',
+        sienna: 'a0522d',
+        silver: 'c0c0c0',
+        skyblue: '87ceeb',
+        slateblue: '6a5acd',
+        slategray: '708090',
+        slategrey: '708090',
+        snow: 'fffafa',
+        springgreen: '00ff7f',
+        steelblue: '4682b4',
+        tan: 'd2b48c',
+        teal: '008080',
+        thistle: 'd8bfd8',
+        tomato: 'ff6347',
+        turquoise: '40e0d0',
+        violet: 'ee82ee',
+        wheat: 'f5deb3',
+        white: 'fff',
+        whitesmoke: 'f5f5f5',
+        yellow: 'ff0',
+        yellowgreen: '9acd32'
+    };
+    AsColor.hexNames = flip(AsColor.names);
 }(window, document, jQuery));
