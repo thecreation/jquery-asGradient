@@ -1,0 +1,23 @@
+{
+    "name": "asGradient",
+    "title": "jQuery asGradient",
+    "description": "A jquery plugin that manipulate css gradient.",
+    "keywords": [],
+    "version": "0.1.0",
+    "author": {
+        "name": "amazingSurge",
+        "email": "amazingSurge@yahoo.com",
+        "url": "amazingSurge.com"
+    },
+    "bugs": "https://github.com/amazingSurge/jquery-asGradient/issues",
+    "licenses": [{
+        "type": "GPL",
+        "url": "https://github.com/amazingSurge/jquery-asGradient/blob/master/LICENSE-GPL"
+    }],
+    "bugs": "https://github.com/amazingSurge/jquery-asGradient/issues",
+    "homepage": "https://github.com/amazingSurge/jquery-asGradient",
+    "docs": "https://github.com/amazingSurge/jquery-asGradient",
+    "dependencies": {
+        "jquery": ">= 1.8.3"
+    }
+}
