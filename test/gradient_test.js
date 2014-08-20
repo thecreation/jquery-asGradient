@@ -178,4 +178,42 @@
         this.gradient.angle('top left');
         equal(this.gradient.angle(), 315, 'test angle top left');
     });
+
+    test('from string', function() {
+        this.gradient.fromString('-webkit-linear-gradient(left bottom, #2F2727, #1a82f7)');
+        equal(this.gradient._prefix, '-webkit-', 'test webkit prefix');
+        equal(this.gradient._type, 'LINEAR', 'test linear type');
+        equal(this.gradient.angle(), 225, 'test angle');
+        equal(this.gradient.get(0).color.toString(), '#2f2727', 'test first color stop');
+        equal(this.gradient.get(1).color.toString(), '#1a82f7', 'test second color stop');
+        equal(this.gradient.get(0).position, undefined, 'test first color stop position');
+        equal(this.gradient.get(1).position, undefined, 'test second color stop position');
+        equal(this.gradient.length, 2, 'test color stop count');
+
+        this.gradient.fromString('-moz-linear-gradient(left, rgba(248,80,50,1) 0%, rgba(241,111,92,1) 50%, rgba(240,47,23,1) 71%, rgba(231,56,39,1) 100%)');
+        equal(this.gradient._prefix, '-moz-', 'test moz prefix');
+        equal(this.gradient._type, 'LINEAR', 'test linear type');
+        equal(this.gradient.angle(), 270, 'test angle');
+        equal(this.gradient.get(0).color.toString(), 'rgba(248, 80, 50, 1)', 'test first color stop');
+        equal(this.gradient.get(1).color.toString(), 'rgba(241, 111, 92, 1)', 'test second color stop');
+        equal(this.gradient.get(2).color.toString(), 'rgba(240, 47, 23, 1)', 'test third color stop');
+        equal(this.gradient.get(3).color.toString(), 'rgba(231, 56, 39, 1)', 'test fourth color stop');
+        equal(this.gradient.get(0).position, 0, 'test first color stop position');
+        equal(this.gradient.get(1).position, 0.5, 'test second color stop position');
+        equal(this.gradient.get(2).position, 0.71, 'test third color stop position');
+        equal(this.gradient.get(3).position, 1, 'test fourth color stop position');
+        equal(this.gradient.length, 4, 'test color stop count');
+
+        this.gradient.fromString('linear-gradient(to bottom, hsla(0,0%, 100%,1), hsla( 0,0%,96%,1) 47%, hsla(0,0%,93%,1))');
+        equal(this.gradient._prefix, null, 'test standare prefix');
+        equal(this.gradient._type, 'LINEAR', 'test linear type');
+        equal(this.gradient.angle(), 180, 'test angle');
+        equal(this.gradient.get(0).color.toString(), 'hsla(0, 0%, 100%, 1)', 'test first color stop');
+        equal(this.gradient.get(1).color.toString(), 'hsla(0, 0%, 96%, 1)', 'test second color stop');
+        equal(this.gradient.get(2).color.toString(), 'hsla(0, 0%, 93%, 1)', 'test third color stop');
+        equal(this.gradient.get(0).position, undefined, 'test first color stop position');
+        equal(this.gradient.get(1).position, 0.47, 'test second color stop position');
+        equal(this.gradient.get(2).position, undefined, 'test third color stop position');
+        equal(this.gradient.length, 3, 'test color stop count');
+    });
 }(jQuery));
