@@ -8,6 +8,37 @@
 (function(window, document, $, Color, undefined) {
     'use strict';
 
+    function flip(o) {
+        var flipped = {};
+        for (var i in o) {
+            if (o.hasOwnProperty(i)) {
+                flipped[o[i]] = i;
+            }
+        }
+        return flipped;
+    }
+
+    function isPercentage(n) {
+        return typeof n === "string" && n.indexOf('%') != -1;
+    }
+
+    function reverseDirection(direction){
+        var mapping = {
+            'top'          : 'bottom',
+            'right'        : 'left',
+            'bottom'       : 'top',
+            'left'         : 'right',
+            'right top'    : 'left bottom',
+            'top right'    : 'bottom left',
+            'bottom right' : 'top left',
+            'right bottom' : 'left top',
+            'left bottom'  : 'right top',
+            'bottom left'  : 'top right',
+            'top left'     : 'bottom right',
+            'left top'     : 'right bottom',
+        };
+        return mapping.hasOwnProperty(direction)?mapping[direction]: direction;
+    }
     var RegExpStrings = (function(){
         var color = /(?:rgba|rgb|hsla|hsl)\s*\([\s\d\.,%]+\)|#[a-z0-9]{3,6}|[a-z]+/i,
             position = /\d{1,3}%/i,
@@ -36,34 +67,40 @@
                     a: 1
                 };
             },
-            to: function(color, instance) {
-                return 'rgb(' + color.r + ', ' + color.g + ', ' + color.b + ')';
+            to: function(gradient, instance, prefix) {
+                if(gradient.stops.length === 0){
+                    return instance.options.emptyString;
+                }
+                if(gradient.stops.length === 1){
+                    return gradient.stops[0].color.to(instance.options.degradationFormat);
+                }
+
+                var standard = instance.options.forceStandard, _prefix = instance._prefix;
+                if(!_prefix) {
+                    standard = true;
+                }
+                if(prefix && -1 !== $.inArray(prefix, instance.options.prefixes)) {
+                    standard = false;
+                    _prefix = prefix;
+                }
+                var angle = Gradient.formatAngle(gradient.angle, instance.options.angleUseKeyword, standard);
+                var stops = Gradient.formatStops(gradient.stops, instance.options.cleanPosition);
+
+                var output = 'linear-gradient(' + angle + ', ' + stops + ')';
+                if(standard) {
+                    return output;
+                } else {
+                    return _prefix + output;
+                }
             }
         }
-    },
-    angleDirectionMapping = {
-        'top'          : 0,
-        'right'        : 90,
-        'bottom'       : 180,
-        'left'         : 270,
-        'top right'    : 45,
-        'right top'    : 45,
-        'right bottom' : 135,
-        'bottom right' : 135,
-        'bottom left'  : 225,
-        'left bottom'  : 225,
-        'left top'     : 315,
-        'top left'     : 315
     };
-    function isPercentage(n) {
-        return typeof n === "string" && n.indexOf('%') != -1;
-    }
-
-    function isLength(){
-
-    }
 
     var Gradient = $.asGradient = function(string, options) {
+        if (typeof string === 'object' && typeof options === 'undefined') {
+            options = string;
+            string = undefined;
+        }
         this.value = {
             angle: 0,
             stops: []
@@ -107,9 +144,12 @@
             if(typeof index === 'undefined') {
                 index = this.current;
             }
-
+            var format;
+            if(this.options.forceColorFormat){
+                format = this.options.forceColorFormat;
+            }
             var stop = {
-                color: new Color(color, this.options.color),
+                color: new Color(color, format, this.options.color),
                 position: Gradient.parsePosition(position)
             };
             
@@ -174,8 +214,15 @@
                 }
             }
         },
-        toString: function() {
-            return GradientTypes[this.type()].to(this.value);
+        toString: function(prefix) {
+            return GradientTypes[this.type()].to(this.value, this, prefix);
+        },
+        getPrefixedStrings: function() {
+            var strings = [];
+            for(var i in this.options.prefixes){
+                strings.push(this.toString(this.options.prefixes[i]));
+            }
+            return strings;
         }
     };
     Gradient.parseString = function(string) {
@@ -216,6 +263,57 @@
             return false;
         }
     };
+    Gradient.formatStops = function(stops, cleanPosition){
+        var stop, output = [], positions = [], colors = [], position;
+
+        for(var i = 0; i < stops.length; i++){
+            stop = stops[i];
+            if(typeof stop.position === 'undefined'){
+                if(i === 0){
+                    position = 0;
+                } else if(i === stops.length - 1){
+                    position = 1;
+                } else {
+                    twice = true;
+                }
+            } else {
+                position = stop.position;
+            }
+            positions.push(position);
+            colors.push(stop.color.toString());
+        }
+
+        positions = (function(data){
+            var start = null, average; 
+            for(var i = 0; i < data.length; i++){
+                if(isNaN(data[i])){
+                  if(start === null){
+                    start = i;
+                    continue;
+                  }
+                }else if(start){
+                  average = (data[i]-data[start-1])/(i-start+1);
+                  for(var j = start;j < i;j++){
+                     data[j] = data[start-1]+(j-start+1)*average;
+                  }
+                  start = null;
+                }
+            }
+            
+            return data;
+        })(positions);
+
+        for(var i = 0; i < stops.length; i++){
+            if( cleanPosition && ((i === 0 && positions[i] === 0) || (i === stops.length -1 && positions[i] === 1)) ){
+                position = '';
+            } else {
+                position = ' ' + Gradient.formatPosition(positions[i]);
+            }
+            
+            output.push(colors[i] + position);
+        }
+        return output.join(', ');
+    };
     Gradient.parseStop = function(string) {
         var matched;
         if ((matched = RegExpStrings.STOP.exec(string)) != null) {
@@ -236,14 +334,17 @@
 
         return string;
     };
+    Gradient.formatPosition = function(value){
+        return parseInt(value * 100, 10) + '%';
+    };
     Gradient.parseAngle = function(string) {
         if(typeof string === 'string'){
             if(string.indexOf("to ") === 0){
                 string = $.trim(string.substr(3));
-
+                string = reverseDirection(string);
             }
-            if(angleDirectionMapping.hasOwnProperty(string)){
-                string = angleDirectionMapping[string];
+            if(Gradient.keywordAngleMap.hasOwnProperty(string)){
+                string = Gradient.keywordAngleMap[string];
             }
         }
 
@@ -260,10 +361,29 @@
         }
         return value;
     };
+    Gradient.formatAngle = function(value, useKeyword, standard){
+        value = parseInt(value, 10);
+        if(useKeyword && Gradient.angleKeywordMap.hasOwnProperty(value)){
+            value = Gradient.angleKeywordMap[value];
+            if(standard){
+                value = 'to ' + reverseDirection(value);
+            }
+        } else {
+            value = value + 'deg';
+        }
+
+        return value;
+    };
     Gradient.defaults = {
+        prefixes: ['-webkit-','-moz-','-ms-','-o-'],
         forceStandard: true,
+        angleUseKeyword: true,
+        emptyString: '',
+        degradationFormat: false,
+        cleanPosition: true,
+        forceColorFormat: false, // rgb, rgba, hsl, hsla, hex
         color: {
-            format: 'rgba',
+            hexUseName: false,
             reduceAlpha: true,
             shortenHex: true,
             zeroAlphaAsTransparent: false,
@@ -275,6 +395,21 @@
             }
         }
     };
+    Gradient.keywordAngleMap = {
+        'top'          : 0,
+        'right'        : 90,
+        'bottom'       : 180,
+        'left'         : 270,
+        'right top'    : 45,
+        'top right'    : 45,
+        'bottom right' : 135,
+        'right bottom' : 135,
+        'left bottom'  : 225,
+        'bottom left'  : 225,
+        'top left'     : 315,
+        'left top'     : 315,
+    };
+    Gradient.angleKeywordMap = flip(Gradient.keywordAngleMap);
 }(window, document, jQuery, (function($) {
     if ($.asColor === undefined) {
         // console.info('lost dependency lib of $.asColor , please load it first !');

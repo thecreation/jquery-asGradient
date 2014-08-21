@@ -22,7 +22,25 @@
     module('asGradient', {
         // This will run before each test in this module.
         setup: function() {
-            this.gradient = new $.asGradient();
+            this.gradient = new $.asGradient({
+                forceStandard: true,
+                angleUseKeyword: true,
+                emptyString: '',
+                degradationFormat: 'rgba',
+                cleanPosition: true,
+                color: {
+                    format: 'rgba',
+                    reduceAlpha: true,
+                    shortenHex: true,
+                    zeroAlphaAsTransparent: false,
+                    invalidValue: {
+                        r: 0,
+                        g: 0,
+                        b: 0,
+                        a: 1
+                    }
+                }
+            });
         },
         teardown: function() {
             this.gradient.empty();
@@ -48,6 +66,152 @@
 
     });
 
+
+    test('toString', function(){
+        this.gradient.fromString('-webkit-linear-gradient(top, #2F2727, #1a82f7)');
+        equal(this.gradient.toString(), 'linear-gradient(to bottom, #2f2727, #1a82f7)', 'test toString standare');
+        equal(this.gradient.toString('-webkit-'), '-webkit-linear-gradient(top, #2f2727, #1a82f7)', 'test toString webkit');
+        equal(this.gradient.toString('-moz-'), '-moz-linear-gradient(top, #2f2727, #1a82f7)', 'test toString moz');
+        equal(this.gradient.toString('-o-'), '-o-linear-gradient(top, #2f2727, #1a82f7)', 'test toString o');
+        equal(this.gradient.toString('-ms-'), '-ms-linear-gradient(top, #2f2727, #1a82f7)', 'test toString ms');
+        equal(this.gradient.toString('-undefined-'), 'linear-gradient(to bottom, #2f2727, #1a82f7)', 'test toString undefined prefix');
+
+        this.gradient.fromString('-moz-linear-gradient(top, rgba(248,80,50,1) 0%, rgba(246,41,12,1) 51%, rgba(240,47,23,1) 71%, rgba(231,56,39,1) 100%)');
+        equal(this.gradient.toString(), 'linear-gradient(to bottom, rgb(248, 80, 50), rgb(246, 41, 12) 51%, rgb(240, 47, 23) 71%, rgb(231, 56, 39))', 'test toString 2');
+    });
+
+    test('option angleUseKeyword', function(){
+        var gradient = new $.asGradient('linear-gradient(135deg, yellow, blue)', {
+            angleUseKeyword: false,
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(135deg, yellow, blue)', 'test angleUseKeyword false 135deg');
+
+        gradient = new $.asGradient('linear-gradient(0deg, yellow, blue)', {
+            angleUseKeyword: false,
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(0deg, yellow, blue)', 'test angleUseKeyword false 0deg');
+
+        gradient = new $.asGradient('linear-gradient(0deg, yellow, blue)', {
+            angleUseKeyword: true,
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(to top, yellow, blue)', 'test angleUseKeyword true 0deg');
+
+        gradient = new $.asGradient('linear-gradient(45deg, yellow, blue)', {
+            angleUseKeyword: true,
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(to top right, yellow, blue)', 'test angleUseKeyword true 45deg');
+
+        gradient = new $.asGradient('linear-gradient(90deg, yellow, blue)', {
+            angleUseKeyword: true,
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(to right, yellow, blue)', 'test angleUseKeyword true 90deg');
+
+        gradient = new $.asGradient('linear-gradient(135deg, yellow, blue)', {
+            angleUseKeyword: true,
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(to right bottom, yellow, blue)', 'test angleUseKeyword true 135deg');
+
+        gradient = new $.asGradient('linear-gradient(180deg, yellow, blue)', {
+            angleUseKeyword: true,
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(to bottom, yellow, blue)', 'test angleUseKeyword true 180deg');
+
+        gradient = new $.asGradient('linear-gradient(225deg, yellow, blue)', {
+            angleUseKeyword: true,
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(to bottom left, yellow, blue)', 'test angleUseKeyword true 225deg');
+
+        gradient = new $.asGradient('linear-gradient(270deg, yellow, blue)', {
+            angleUseKeyword: true,
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(to left, yellow, blue)', 'test angleUseKeyword true 270deg');
+
+        gradient = new $.asGradient('linear-gradient(315deg, yellow, blue)', {
+            angleUseKeyword: true,
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(to left top, yellow, blue)', 'test angleUseKeyword true 315deg');
+    });
+
+    test('option forceStandard', function(){
+        var gradient = new $.asGradient('-webkit-linear-gradient(left, #2F2727, #1a82f7)', {
+            forceStandard: false
+        });
+        equal(gradient.toString(), '-webkit-linear-gradient(left, #2f2727, #1a82f7)', 'test forceStandard false');
+
+        gradient = new $.asGradient('-webkit-linear-gradient(right, #2F2727, #1a82f7)', {
+            forceStandard: true
+        });
+        equal(gradient.toString(), 'linear-gradient(to right, #2f2727, #1a82f7)', 'test forceStandard true');
+    });
+
+    test('option cleanPosition', function(){
+        var gradient = new $.asGradient('linear-gradient(to bottom, yellow 0%, blue 100%)', {
+            cleanPosition: false
+        });
+        equal(gradient.toString(), 'linear-gradient(to bottom, yellow 0%, blue 100%)', 'test cleanPosition false');
+
+        gradient = new $.asGradient('linear-gradient(to bottom, yellow 0%, blue 100%)', {
+            cleanPosition: true
+        });
+        equal(gradient.toString(), 'linear-gradient(to bottom, yellow, blue)', 'test cleanPosition true');
+    });
+
+    test('option forceColorFormat', function(){
+        var gradient = new $.asGradient('-moz-linear-gradient(left, rgba(255,255,255,1) 0%, rgba(246,246,246,1) 47%, rgba(237,237,237,1) 100%)', {
+            forceColorFormat: false,
+            cleanPosition: false
+        });
+        equal(gradient.toString(), 'linear-gradient(to left, rgb(255, 255, 255) 0%, rgb(246, 246, 246) 47%, rgb(237, 237, 237) 100%)', 'test forceColorFormat false');
+
+        gradient = new $.asGradient('-moz-linear-gradient(left, rgba(255,255,255,1) 0%, rgba(246,246,246,1) 47%, rgba(237,237,237,1) 100%)', {
+            forceColorFormat: true,
+            cleanPosition: false
+        });
+        equal(gradient.toString(), 'linear-gradient(to left, #fff 0%, #f6f6f6 47%, #ededed 100%)', 'test forceColorFormat true');
+    });
+
+    test('option degradationFormat', function(){
+        var gradient = new $.asGradient({
+            degradationFormat: 'rgb'
+        });
+        gradient.append('#fff');
+        equal(gradient.toString(), 'rgb(255, 255, 255)', 'test degradationFormat rgb');
+
+        gradient = new $.asGradient({
+            degradationFormat: 'hex'
+        });
+        gradient.append('#fff');
+        equal(gradient.toString(), '#fff', 'test degradationFormat hex');
+
+        gradient = new $.asGradient({
+            degradationFormat: false
+        });
+        gradient.append('#aa2312');
+        equal(gradient.toString(), '#aa2312', 'test degradationFormat false');
+    });
+
+    test('option emptyString', function(){
+        var gradient = new $.asGradient({
+            emptyString: ''
+        });
+        equal(gradient.toString(), '', 'test emptyString');
+
+        gradient = new $.asGradient({
+            emptyString: 'There is no gradient'
+        });
+        equal(gradient.toString(), 'There is no gradient', 'test custom emptyString');
+    });
+
     test('current', function() {
         this.gradient.empty();
 
@@ -64,6 +228,21 @@
         equal(this.gradient.get().color.toString(), '#fff', 'get the first stop');
     });
 
+    test('method getPrefixedStrings', function(){
+        var gradient = new $.asGradient('linear-gradient(to right, #d4e4ef 0%, #86aecc 100%)', {
+            prefixes: ['-moz-','-webkit-','-o-','-ms-'],
+            cleanPosition: false
+        });
+
+        equal(gradient.getPrefixedStrings(), [
+            '-moz-linear-gradient(left, #d4e4ef 0%, #86aecc 100%)',
+            '-webkit-linear-gradient(left, #d4e4ef 0%, #86aecc 100%)',
+            '-o-linear-gradient(left, #d4e4ef 0%, #86aecc 100%)',
+            '-ms-linear-gradient(left, #d4e4ef 0%, #86aecc 100%)'
+        ], 'get the second stop');
+
+
+    });
 
     test('method empty', function(){
         this.gradient.empty();
