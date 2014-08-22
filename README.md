@@ -41,7 +41,11 @@ jQuery(function($) {
 
     gradient.remove(1);
     gradient.insert('#000', '10%', 1);
-    console.info(gradient.toString()); // linear-gradient(to right, #ace, #000 10%, #ace 10%, #f96 95%, #ace) 
+
+    var stop = gradient.get(4);
+    stop.color.val('#fff');
+
+    console.info(gradient.toString()); // linear-gradient(to right, #ace, #000 10%, #ace 52%, #f96 95%, #fff)
 });
 </script>
 ```
