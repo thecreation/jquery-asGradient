@@ -127,7 +127,7 @@ module.exports = function(grunt) {
                 }]
             },
             jquery: {
-                src: ['tabs.jquery.json'],
+                src: ['asGradient.jquery.json'],
                 overwrite: true, // overwrite matched source files
                 replacements: [{
                     from: /("version": ")([0-9\.]+)(")/g,

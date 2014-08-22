@@ -18,7 +18,7 @@ In your web page:
 <script src="dist/jquery-asGradient.min.js"></script>
 <script>
 jQuery(function($) {
-    var gradient = new $.asGradient('-webkit-linear-gradient(left, #ace, #fff9a6 5%, #ace, #f96 95%, #ace)', {
+    var gradient = new $.asGradient('-webkit-linear-gradient(left, #aaccee, #fff9a6 5%, #ace, #f96 95%, #ace)', {
         forceStandard: true,
         angleUseKeyword: true,
         emptyString: '',
@@ -39,7 +39,9 @@ jQuery(function($) {
         }
     });
 
-    console.info(gradient.toString());
+    gradient.remove(1);
+    gradient.insert('#000', '10%', 1);
+    console.info(gradient.toString()); // linear-gradient(to right, #ace, #000 10%, #ace 10%, #f96 95%, #ace) 
 });
 </script>
 ```

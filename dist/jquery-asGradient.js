@@ -1,10 +1,6 @@
-/*
- * jquery-asGradient
- * https://github.com/amazingSurge/jquery-asGradient
- *
- * Copyright (c) 2014 amazingSurge
- * Licensed under the GPL license.
- */
+/*! asGradient - v0.1.0 - 2014-08-22
+* https://github.com/amazingSurge/asGradient
+* Copyright (c) 2014 amazingSurge; Licensed GPL */
 (function(window, document, $, Color, undefined) {
     'use strict';
 
