@@ -46,62 +46,62 @@
     }
 
     var RegExpStrings = (function() {
-            var color = /(?:rgba|rgb|hsla|hsl)\s*\([\s\d\.,%]+\)|#[a-z0-9]{3,6}|[a-z]+/i,
-                position = /\d{1,3}%/i,
-                angle = /(?:to ){0,1}(?:(?:top|left|right|bottom)\s*){1,2}|\d+deg/i,
-                stop = new RegExp('(' + color.source + ')\\s*(' + position.source + '){0,1}', 'i'),
-                stops = new RegExp(stop.source, 'gi'),
-                parameters = new RegExp('(?:(' + angle.source + '),){0,1}\\s*(.+)\\s*', 'i');
+        var color = /(?:rgba|rgb|hsla|hsl)\s*\([\s\d\.,%]+\)|#[a-z0-9]{3,6}|[a-z]+/i,
+            position = /\d{1,3}%/i,
+            angle = /(?:to ){0,1}(?:(?:top|left|right|bottom)\s*){1,2}|\d+deg/i,
+            stop = new RegExp('(' + color.source + ')\\s*(' + position.source + '){0,1}', 'i'),
+            stops = new RegExp(stop.source, 'gi'),
+            parameters = new RegExp('(?:(' + angle.source + '),){0,1}\\s*(.+)\\s*', 'i');
 
-            return {
-                FULL: /(-webkit-|-moz-|-ms-|-o-){0,1}(linear|radial|repeating-linear)-gradient\s*\(\s*(.+)\s*\)/i,
-                ANGLE: angle,
-                COLOR: color,
-                POSITION: position,
-                STOP: stop,
-                STOPS: stops,
-                PARAMETERS: parameters
-            };
-        })(),
-        GradientTypes = {
-            LINEAR: {
-                parse: function(result) {
-                    return {
-                        r: (result[1].substr(-1) === '%') ? parseInt(result[1].slice(0, -1) * 2.55, 10) : parseInt(result[1], 10),
-                        g: (result[2].substr(-1) === '%') ? parseInt(result[2].slice(0, -1) * 2.55, 10) : parseInt(result[2], 10),
-                        b: (result[3].substr(-1) === '%') ? parseInt(result[3].slice(0, -1) * 2.55, 10) : parseInt(result[3], 10),
-                        a: 1
-                    };
-                },
-                to: function(gradient, instance, prefix) {
-                    if (gradient.stops.length === 0) {
-                        return instance.options.emptyString;
-                    }
-                    if (gradient.stops.length === 1) {
-                        return gradient.stops[0].color.to(instance.options.degradationFormat);
-                    }
+        return {
+            FULL: /(-webkit-|-moz-|-ms-|-o-){0,1}(linear|radial|repeating-linear)-gradient\s*\(\s*(.+)\s*\)/i,
+            ANGLE: angle,
+            COLOR: color,
+            POSITION: position,
+            STOP: stop,
+            STOPS: stops,
+            PARAMETERS: parameters
+        };
+    })(),
+    GradientTypes = {
+        LINEAR: {
+            parse: function(result) {
+                return {
+                    r: (result[1].substr(-1) === '%') ? parseInt(result[1].slice(0, -1) * 2.55, 10) : parseInt(result[1], 10),
+                    g: (result[2].substr(-1) === '%') ? parseInt(result[2].slice(0, -1) * 2.55, 10) : parseInt(result[2], 10),
+                    b: (result[3].substr(-1) === '%') ? parseInt(result[3].slice(0, -1) * 2.55, 10) : parseInt(result[3], 10),
+                    a: 1
+                };
+            },
+            to: function(gradient, instance, prefix) {
+                if (gradient.stops.length === 0) {
+                    return instance.options.emptyString;
+                }
+                if (gradient.stops.length === 1) {
+                    return gradient.stops[0].color.to(instance.options.degradationFormat);
+                }
 
-                    var standard = instance.options.forceStandard,
-                        _prefix = instance._prefix;
-                    if (!_prefix) {
-                        standard = true;
-                    }
-                    if (prefix && -1 !== $.inArray(prefix, instance.options.prefixes)) {
-                        standard = false;
-                        _prefix = prefix;
-                    }
-                    var angle = Gradient.formatAngle(gradient.angle, standard, instance.options.angleUseKeyword);
-                    var stops = Gradient.formatStops(gradient.stops, instance.options.cleanPosition);
+                var standard = instance.options.forceStandard,
+                    _prefix = instance._prefix;
+                if (!_prefix) {
+                    standard = true;
+                }
+                if (prefix && -1 !== $.inArray(prefix, instance.options.prefixes)) {
+                    standard = false;
+                    _prefix = prefix;
+                }
+                var angle = Gradient.formatAngle(gradient.angle, standard, instance.options.angleUseKeyword);
+                var stops = Gradient.formatStops(gradient.stops, instance.options.cleanPosition);
 
-                    var output = 'linear-gradient(' + angle + ', ' + stops + ')';
-                    if (standard) {
-                        return output;
-                    } else {
-                        return _prefix + output;
-                    }
+                var output = 'linear-gradient(' + angle + ', ' + stops + ')';
+                if (standard) {
+                    return output;
+                } else {
+                    return _prefix + output;
                 }
             }
-        };
+        }
+    };
 
     var Gradient = $.asGradient = function(string, options) {
         if (typeof string === 'object' && typeof options === 'undefined') {
@@ -147,6 +147,16 @@
         append: function(color, position) {
             this.insert(color, position, this.length);
         },
+        reorder: function(){
+            if(this.length < 2){
+                return;
+            }
+
+            
+            this.value.stops = this.value.stops.sort(function(a,b){
+                return a.position - b.position;
+            });
+        },
         insert: function(color, position, index) {
             if (typeof index === 'undefined') {
                 index = this.current;
@@ -155,10 +165,27 @@
             if (this.options.forceColorFormat) {
                 format = this.options.forceColorFormat;
             }
-            var stop = {
-                color: new Color(color, format, this.options.color),
-                position: Gradient.parsePosition(position)
+            var self = this;
+            var ColorStop = function(color, position){
+                this.color = new Color(color, format, self.options.color),
+                this.position = Gradient.parsePosition(position);
             };
+
+            ColorStop.prototype = {
+                constructor: ColorStop,
+                setPosition: function(string) {
+                    var position = Gradient.parsePosition(string);
+                    if(this.position !== position){
+                        this.position = position;
+                        self.reorder();
+                    }
+                },
+                setColor: function(string){
+                    this.color.fromString(string);
+                }
+            };
+
+            var stop = new ColorStop(color, position);
 
             this.value.stops.splice(index, 0, stop);
 

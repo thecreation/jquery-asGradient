@@ -64,6 +64,37 @@
         equal(this.gradient.length, 1, 'test length after remove');
     });
 
+    test('color stop position', function(){
+        this.gradient.empty();
+        this.gradient.append('#fff', 0);
+        this.gradient.append('#333', '50%');
+        this.gradient.append('#000', 1);
+
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #333 50%, #000)', 'insert 3 color stops');
+
+        this.gradient.get(2).setPosition(0.4);
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #000 40%, #333 50%)', 'insert 3 color stops');
+    });
+
+    test('color stop reorder', function(){
+        this.gradient.empty();
+        this.gradient.append('#fff', 0);
+        this.gradient.append('#333', '50%');
+        this.gradient.append('#000', 1);
+        this.gradient.reorder();
+
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #333 50%, #000)', 'insert 3 color stops');
+
+        this.gradient.append('#ddd', 0.8);
+        this.gradient.reorder();
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #333 50%, #ddd 80%, #000)', 'insert 4 color stops');
+        this.gradient.append('#aaa', 0.1);
+
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #333 50%, #ddd 80%, #000 100%, #aaa 10%)', 'insert 5 color stops');
+        this.gradient.reorder();
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #aaa 10%, #333 50%, #ddd 80%, #000)', 'insert 5 color stops');
+    });
+
     test('angle standare and prefixed', function(){
         this.gradient.fromString('-webkit-linear-gradient(top, #000000, #ffffff)');
         equal(this.gradient.angle(), 180, 'test old top');
