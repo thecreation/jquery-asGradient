@@ -118,6 +118,7 @@
         this._prefix = null;
         this.length = this.value.stops.length;
         this.current = 0;
+        this._stop_id_count = 0;
 
         this.init(string);
     };
@@ -145,14 +146,13 @@
             }
         },
         append: function(color, position) {
-            this.insert(color, position, this.length);
+            return this.insert(color, position, this.length);
         },
         reorder: function(){
             if(this.length < 2){
                 return;
             }
 
-            
             this.value.stops = this.value.stops.sort(function(a,b){
                 return a.position - b.position;
             });
@@ -169,6 +169,7 @@
             var ColorStop = function(color, position){
                 this.color = new Color(color, format, self.options.color),
                 this.position = Gradient.parsePosition(position);
+                this.id = ++self._stop_id_count;
             };
 
             ColorStop.prototype = {
@@ -191,7 +192,17 @@
 
             this.length = this.length + 1;
             this.current = index;
-
+            return stop;
+        },
+        getById: function(id) {
+            if(this.length > 0){
+                for(var i in this.value.stops){
+                    if(id === this.value.stops[i].id){
+                        return this.value.stops[i];
+                    }
+                }
+            }
+            return false;
         },
         get: function(index) {
             if (typeof index === 'undefined') {

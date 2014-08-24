@@ -95,6 +95,22 @@
         equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #aaa 10%, #333 50%, #ddd 80%, #000)', 'insert 5 color stops');
     });
 
+    test('color stop id', function(){
+        this.gradient.empty();
+        this.gradient.append('#fff', 0);
+        this.gradient.append('#333', '50%');
+        this.gradient.append('#000', 1);
+
+        equal(this.gradient.get(0).id, 1, 'the first stop id is 1');
+        equal(this.gradient.get(1).id, 2, 'the second stop id is 2');
+        equal(this.gradient.get(2).id, 3, 'the third stop id is 3');
+
+        this.gradient.get(2).setPosition(0.4); // move the third to second
+        equal(this.gradient.get(0).id, 1, 'the first stop id is 1');
+        equal(this.gradient.get(1).id, 3, 'the second stop id is 3');
+        equal(this.gradient.get(2).id, 2, 'the third stop id is 2');
+    });
+
     test('angle standare and prefixed', function(){
         this.gradient.fromString('-webkit-linear-gradient(top, #000000, #ffffff)');
         equal(this.gradient.angle(), 180, 'test old top');
