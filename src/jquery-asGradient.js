@@ -183,6 +183,9 @@
                 },
                 setColor: function(string){
                     this.color.fromString(string);
+                },
+                remove: function(){
+                    self.removeById(this.id);
                 }
             };
 
@@ -201,6 +204,22 @@
                         return this.value.stops[i];
                     }
                 }
+            }
+            return false;
+        },
+        removeById: function(id){
+            var index = this.getIndexById(id);
+            if(index){
+                this.remove(index);
+            }
+        },
+        getIndexById: function(id){
+            var index = 0;
+            for(var i in this.value.stops){
+                if(id === this.value.stops[i].id){
+                    return index;
+                }
+                index ++;
             }
             return false;
         },

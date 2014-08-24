@@ -111,6 +111,14 @@
         equal(this.gradient.get(2).id, 2, 'the third stop id is 2');
     });
 
+    test('method removeById', function(){
+        this.gradient.fromString('-webkit-linear-gradient(top, #123456, #ffffff, #654321)');
+
+        this.gradient.removeById(2);
+
+        equal(this.gradient.toString(), 'linear-gradient(to bottom, #123456, #654321)');
+    });
+
     test('angle standare and prefixed', function(){
         this.gradient.fromString('-webkit-linear-gradient(top, #000000, #ffffff)');
         equal(this.gradient.angle(), 180, 'test old top');
@@ -473,8 +481,6 @@
             '-o-linear-gradient(left, #d4e4ef 0%, #86aecc 100%)',
             '-ms-linear-gradient(left, #d4e4ef 0%, #86aecc 100%)'
         ], 'get the second stop');
-
-
     });
 
     test('method empty', function(){
@@ -522,6 +528,7 @@
         equal(this.gradient.get(2).color.toString(), '#000', 'check the third color');
         equal(this.gradient.get(3).color.toString(), '#ccc', 'check the fourth color');
     });
+
 
     test('from string', function() {
         this.gradient = new $.asGradient({
