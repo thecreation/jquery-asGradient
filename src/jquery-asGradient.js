@@ -281,6 +281,12 @@
         toString: function(prefix) {
             return GradientTypes[this.type()].to(this.value, this, prefix);
         },
+        toStringWithAngle: function(angle, prefix){
+            var value = $.extend(true, {}, this.value);
+            value.angle = Gradient.parseAngle(angle);
+
+            return GradientTypes[this.type()].to(value, this, prefix);
+        },
         getPrefixedStrings: function() {
             var strings = [];
             for (var i in this.options.prefixes) {

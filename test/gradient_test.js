@@ -369,6 +369,14 @@
         equal(this.gradient.toString(), 'linear-gradient(to bottom, rgb(248, 80, 50), rgb(246, 41, 12) 51%, rgb(240, 47, 23) 71%, rgb(231, 56, 39))', 'test toString 2');
     });
 
+    test('toStringWithAngle', function(){
+        this.gradient.fromString('-webkit-linear-gradient(top, #2F2727, #1a82f7)');
+        equal(this.gradient.toStringWithAngle('to right', '-webkit-'), '-webkit-linear-gradient(left, #2f2727, #1a82f7)', 'test toStringWithAngle');
+        equal(this.gradient.toStringWithAngle('to right'), 'linear-gradient(to right, #2f2727, #1a82f7)', 'test toStringWithAngle standare');
+    
+        equal(this.gradient.toString(), 'linear-gradient(to bottom, #2f2727, #1a82f7)', 'test toString standare');
+    });
+
     test('option forceStandard', function(){
         var gradient = new $.asGradient('-webkit-linear-gradient(left, #2F2727, #1a82f7)', {
             forceStandard: false
