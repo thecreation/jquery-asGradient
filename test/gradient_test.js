@@ -94,6 +94,61 @@
         equal(this.gradient.get().color.toString(), '#fff', 'get the first stop');
     });
 
+    test('color stop position', function(){
+        this.gradient.empty();
+        this.gradient.append('#fff', 0);
+        this.gradient.append('#333', '50%');
+        this.gradient.append('#000', 1);
+
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #333 50%, #000)', 'insert 3 color stops');
+
+        this.gradient.get(2).setPosition(0.4);
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #000 40%, #333 50%)', 'insert 3 color stops');
+    });
+
+    test('color stop reorder', function(){
+        this.gradient.empty();
+        this.gradient.append('#fff', 0);
+        this.gradient.append('#333', '50%');
+        this.gradient.append('#000', 1);
+        this.gradient.reorder();
+
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #333 50%, #000)', 'insert 3 color stops');
+
+        this.gradient.append('#ddd', 0.8);
+        this.gradient.reorder();
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #333 50%, #ddd 80%, #000)', 'insert 4 color stops');
+        this.gradient.append('#aaa', 0.1);
+
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #333 50%, #ddd 80%, #000 100%, #aaa 10%)', 'insert 5 color stops');
+        this.gradient.reorder();
+        equal(this.gradient.toString(), 'linear-gradient(to top, #fff, #aaa 10%, #333 50%, #ddd 80%, #000)', 'insert 5 color stops');
+    });
+
+    test('color stop id', function(){
+        this.gradient.empty();
+        this.gradient.append('#fff', 0);
+        this.gradient.append('#333', '50%');
+        this.gradient.append('#000', 1);
+
+        equal(this.gradient.get(0).id, 1, 'the first stop id is 1');
+        equal(this.gradient.get(1).id, 2, 'the second stop id is 2');
+        equal(this.gradient.get(2).id, 3, 'the third stop id is 3');
+
+        this.gradient.get(2).setPosition(0.4); // move the third to second
+        equal(this.gradient.get(0).id, 1, 'the first stop id is 1');
+        equal(this.gradient.get(1).id, 3, 'the second stop id is 3');
+        equal(this.gradient.get(2).id, 2, 'the third stop id is 2');
+    });
+
+    test('method removeById', function(){
+        this.gradient.fromString('-webkit-linear-gradient(top, #123456, #ffffff, #654321)');
+
+        this.gradient.removeById(2);
+
+        equal(this.gradient.toString(), 'linear-gradient(to bottom, #123456, #654321)');
+    });
+
     test('angle standare and prefixed', function(){
         this.gradient.fromString('-webkit-linear-gradient(top, #000000, #ffffff)');
         equal(this.gradient.angle(), 180, 'test old top');
@@ -342,6 +397,14 @@
 
         this.gradient.fromString('-moz-linear-gradient(top, rgba(248,80,50,1) 0%, rgba(246,41,12,1) 51%, rgba(240,47,23,1) 71%, rgba(231,56,39,1) 100%)');
         equal(this.gradient.toString(), 'linear-gradient(to bottom, rgb(248, 80, 50), rgb(246, 41, 12) 51%, rgb(240, 47, 23) 71%, rgb(231, 56, 39))', 'test toString 2');
+    });
+
+    test('toStringWithAngle', function(){
+        this.gradient.fromString('-webkit-linear-gradient(top, #2F2727, #1a82f7)');
+        equal(this.gradient.toStringWithAngle('to right', '-webkit-'), '-webkit-linear-gradient(left, #2f2727, #1a82f7)', 'test toStringWithAngle');
+        equal(this.gradient.toStringWithAngle('to right'), 'linear-gradient(to right, #2f2727, #1a82f7)', 'test toStringWithAngle standare');
+    
+        equal(this.gradient.toString(), 'linear-gradient(to bottom, #2f2727, #1a82f7)', 'test toString standare');
     });
 
     test('option forceStandard', function(){
