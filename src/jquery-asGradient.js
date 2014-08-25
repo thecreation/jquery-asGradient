@@ -51,7 +51,7 @@
                 angle = /(?:to ){0,1}(?:(?:top|left|right|bottom)\s*){1,2}|\d+deg/i,
                 stop = new RegExp('(' + color.source + ')\\s*(' + position.source + '){0,1}', 'i'),
                 stops = new RegExp(stop.source, 'gi'),
-                parameters = new RegExp('(?:(' + angle.source + '),){0,1}\\s*(.+)\\s*', 'i');
+                parameters = new RegExp('^(?:(' + angle.source + ')){0,1}\\s*,{0,1}\\s*(.*?)\\s*$', 'i');
 
             return {
                 FULL: /(-webkit-|-moz-|-ms-|-o-){0,1}(linear|radial|repeating-linear)-gradient\s*\(\s*(.+)\s*\)/i,
@@ -231,6 +231,14 @@
             }
             return strings;
         }
+    };
+    Gradient.matchString = function(string) {
+        var matched = Gradient.parseString(string);
+        if(matched && matched.value && matched.value.stops && matched.value.stops.length > 1){
+            console.dir(matched);
+            return true;
+        }
+        return false;
     };
     Gradient.parseString = function(string) {
         var matched;

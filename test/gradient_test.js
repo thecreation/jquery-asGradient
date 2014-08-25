@@ -64,6 +64,36 @@
         equal(this.gradient.length, 1, 'test length after remove');
     });
 
+    test('undefined position', function(){
+        var gradient = new $.asGradient('linear-gradient(to bottom, yellow, blue)', {
+            cleanPosition: false
+        });
+        equal(gradient.toString(), 'linear-gradient(to bottom, yellow 0%, blue 100%)', 'test position');
+
+        gradient.fromString('linear-gradient(to bottom, yellow, red, blue)');
+        equal(gradient.toString(), 'linear-gradient(to bottom, yellow 0%, red 50%, blue 100%)', 'test three color position');
+
+        gradient.fromString('linear-gradient(to bottom, yellow, red, white, blue)');
+        equal(gradient.toString(), 'linear-gradient(to bottom, yellow 0%, red 33%, white 66%, blue 100%)', 'test four color position');
+    });
+
+
+    test('current', function() {
+        this.gradient.empty();
+
+        this.gradient.insert('#fff');
+        equal(this.gradient.current, 0, 'current should be set to 0 after first insert');
+        equal(this.gradient.get().color.toString(), '#fff', 'get the first stop');
+
+        this.gradient.insert('#000', undefined, 1);
+        equal(this.gradient.current, 1, 'current should be set to 1 after second insert');
+        equal(this.gradient.get().color.toString(), '#000', 'get the second stop');
+        
+        this.gradient.remove();
+        equal(this.gradient.current, 0, 'current should be set to 0 after remove');
+        equal(this.gradient.get().color.toString(), '#fff', 'get the first stop');
+    });
+
     test('angle standare and prefixed', function(){
         this.gradient.fromString('-webkit-linear-gradient(top, #000000, #ffffff)');
         equal(this.gradient.angle(), 180, 'test old top');
@@ -384,36 +414,6 @@
         equal(gradient.toString(), 'There is no gradient', 'test custom emptyString');
     });
 
-    test('undefined position', function(){
-        var gradient = new $.asGradient('linear-gradient(to bottom, yellow, blue)', {
-            cleanPosition: false
-        });
-        equal(gradient.toString(), 'linear-gradient(to bottom, yellow 0%, blue 100%)', 'test position');
-
-        gradient.fromString('linear-gradient(to bottom, yellow, red, blue)');
-        equal(gradient.toString(), 'linear-gradient(to bottom, yellow 0%, red 50%, blue 100%)', 'test three color position');
-
-        gradient.fromString('linear-gradient(to bottom, yellow, red, white, blue)');
-        equal(gradient.toString(), 'linear-gradient(to bottom, yellow 0%, red 33%, white 66%, blue 100%)', 'test four color position');
-    });
-
-
-    test('current', function() {
-        this.gradient.empty();
-
-        this.gradient.insert('#fff');
-        equal(this.gradient.current, 0, 'current should be set to 0 after first insert');
-        equal(this.gradient.get().color.toString(), '#fff', 'get the first stop');
-
-        this.gradient.insert('#000', undefined, 1);
-        equal(this.gradient.current, 1, 'current should be set to 1 after second insert');
-        equal(this.gradient.get().color.toString(), '#000', 'get the second stop');
-        
-        this.gradient.remove();
-        equal(this.gradient.current, 0, 'current should be set to 0 after remove');
-        equal(this.gradient.get().color.toString(), '#fff', 'get the first stop');
-    });
-
     test('method getPrefixedStrings', function(){
         var gradient = new $.asGradient('linear-gradient(to right, #d4e4ef 0%, #86aecc 100%)', {
             prefixes: ['-moz-','-webkit-','-o-','-ms-'],
@@ -425,9 +425,7 @@
             '-webkit-linear-gradient(left, #d4e4ef 0%, #86aecc 100%)',
             '-o-linear-gradient(left, #d4e4ef 0%, #86aecc 100%)',
             '-ms-linear-gradient(left, #d4e4ef 0%, #86aecc 100%)'
-        ], 'get the second stop');
-
-
+        ], 'get Prefixed Strings');
     });
 
     test('method empty', function(){
@@ -476,7 +474,17 @@
         equal(this.gradient.get(3).color.toString(), '#ccc', 'check the fourth color');
     });
 
-    test('from string', function() {
+    test('method matchString', function() {
+        equal($.asGradient.matchString('-webkit-linear-gradient(50deg, #2F2727, #1a82f7)'), true, 'test matchString');
+        equal($.asGradient.matchString('-moz-linear-gradient(left, rgba(248,80,50,0.8) 1%, rgba(241,111,92,0.8) 50%, rgba(240,47,23,0.8) 71%, rgba(231,56,39,0.8) 99%)'), true, 'test matchString');
+        equal($.asGradient.matchString('#2F2727'), false, 'test matchString #2F2727');
+        equal($.asGradient.matchString('rgba(248,80,50,0.8)'), false, 'test matchString rgba(248,80,50,0.8)');
+        equal($.asGradient.matchString('linear-gradient(50deg)'), false, 'test matchString linear-gradient(50deg)');
+        equal($.asGradient.matchString('linear-gradient(to top)'), false, 'test matchString linear-gradient(to top)');
+        equal($.asGradient.matchString('linear-gradient(50deg, #2F2727)'), false, 'test matchString linear-gradient(50deg, #2F2727)');
+    });
+
+    test('method fromString', function() {
         this.gradient = new $.asGradient({
             forceStandard: false
         });
