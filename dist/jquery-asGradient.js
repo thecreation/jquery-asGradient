@@ -312,6 +312,10 @@
             var value = $.extend(true, {}, this.value);
             value.angle = Gradient.parseAngle(angle);
 
+            if(prefix === true){
+                prefix = getPrefix();
+            }
+
             return GradientTypes[this.type()].to(value, this, prefix);
         },
         getPrefixedStrings: function() {
