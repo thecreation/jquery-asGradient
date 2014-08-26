@@ -8,6 +8,21 @@
 (function(window, document, $, Color, undefined) {
     'use strict';
 
+    function getPrefix() {
+        var ua = window.navigator.userAgent;
+        var prefix = '';
+        if (/MSIE/g.test(ua)) {
+            prefix = '-ms-';
+        } else if (/Firefox/g.test(ua)) {
+            prefix = '-moz-';
+        } else if (/(WebKit)/i.test(ua)) {
+            prefix = '-webkit-';
+        } else if (/Opera/g.test(ua)) {
+            prefix = '-o-';
+        }
+        return prefix;
+    }
+
     function flip(o) {
         var flipped = {};
         for (var i in o) {
@@ -292,6 +307,9 @@
             }
         },
         toString: function(prefix) {
+            if(prefix === true){
+                prefix = getPrefix();
+            }
             return GradientTypes[this.type()].to(this.value, this, prefix);
         },
         toStringWithAngle: function(angle, prefix){
