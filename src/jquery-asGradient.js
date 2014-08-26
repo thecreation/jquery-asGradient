@@ -298,7 +298,6 @@
     Gradient.matchString = function(string) {
         var matched = Gradient.parseString(string);
         if(matched && matched.value && matched.value.stops && matched.value.stops.length > 1){
-            console.dir(matched);
             return true;
         }
         return false;
