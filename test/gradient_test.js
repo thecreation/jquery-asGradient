@@ -92,6 +92,16 @@
         this.gradient.remove();
         equal(this.gradient.current, 0, 'current should be set to 0 after remove');
         equal(this.gradient.get().color.toString(), '#fff', 'get the first stop');
+
+        var gradient = new $.asGradient();
+        gradient.append('#fff', 0);
+        gradient.append('#333', '50%');
+        gradient.append('#000', 1);
+
+        gradient.setCurrentById(2);
+        var current = gradient.getCurrent();
+        
+        equal(current.id, 2, 'current id should be equal 2');
     });
 
     test('color stop position', function(){
