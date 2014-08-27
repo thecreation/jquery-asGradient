@@ -312,6 +312,9 @@
             }
             return GradientTypes[this.type()].to(this.value, this, prefix);
         },
+        matchString: function(string){
+            return Gradient.matchString(string);
+        },
         toStringWithAngle: function(angle, prefix){
             var value = $.extend(true, {}, this.value);
             value.angle = Gradient.parseAngle(angle);
