@@ -24,48 +24,51 @@ const RegExpStrings = (() => {
   };
 })();
 
-export default class GradientString {
-  static matchString(string) {
-    const matched = GradientString.parseString(string);
+export default {
+  matchString: function(string) {
+    const matched = this.parseString(string);
     if(matched && matched.value && matched.value.stops && matched.value.stops.length > 1){
       return true;
     }
     return false;
-  }
+  },
 
-  static parseString(string) {
+  parseString: function(string) {
     string = $.trim(string);
     let matched;
     if ((matched = RegExpStrings.FULL.exec(string)) !== null) {
+      let value = this.parseParameters(matched[3]);
+
       return {
         prefix: (typeof matched[1] === 'undefined') ? null : matched[1],
         type: matched[2],
-        value: GradientString.parseParameters(matched[3])
+        value: value
       };
     } else {
       return false;
     }
-  }
+  },
 
-  static parseParameters(string) {
+  parseParameters: function(string) {
     let matched;
     if ((matched = RegExpStrings.PARAMETERS.exec(string)) !== null) {
+      let stops = this.parseStops(matched[2]);
       return {
         angle: (typeof matched[1] === 'undefined') ? 0 : matched[1],
-        stops: GradientString.parseStops(matched[2])
+        stops: stops
       };
     } else {
       return false;
     }
-  }
+  },
 
-  static parseStops(string) {
+  parseStops: function(string) {
     let matched;
     const result = [];
     if ((matched = string.match(RegExpStrings.STOPS)) !== null) {
 
       $.each(matched, (i, item) => {
-        const stop = GradientString.parseStop(item);
+        const stop = this.parseStop(item);
         if (stop) {
           result.push(stop);
         }
@@ -74,9 +77,9 @@ export default class GradientString {
     } else {
       return false;
     }
-  }
+  },
 
-  static formatStops(stops, cleanPosition) {
+  formatStops: function(stops, cleanPosition) {
     let stop;
     const output = [];
     let positions = [];
@@ -125,27 +128,29 @@ export default class GradientString {
       if (cleanPosition && ((x === 0 && positions[x] === 0) || (x === stops.length - 1 && positions[x] === 1))) {
         position = '';
       } else {
-        position = ` ${GradientString.formatPosition(positions[x])}`;
+        position = ` ${this.formatPosition(positions[x])}`;
       }
 
       output.push(colors[x] + position);
     }
     return output.join(', ');
-  }
+  },
 
-  static parseStop(string) {
+  parseStop: function(string) {
     let matched;
     if ((matched = RegExpStrings.STOP.exec(string)) !== null) {
+      let position = this.parsePosition(matched[2]);
+
       return {
         color: matched[1],
-        position: GradientString.parsePosition(matched[2])
+        position: position
       };
     } else {
       return false;
     }
-  }
+  },
 
-  static parsePosition(string) {
+  parsePosition: function(string) {
     if (typeof string === 'string' && string.substr(-1) === '%') {
       string = parseFloat(string.slice(0, -1) / 100);
     }
@@ -155,19 +160,19 @@ export default class GradientString {
     } else {
       return null;
     }
-  }
+  },
 
-  static formatPosition(value) {
+  formatPosition: function(value) {
     return `${parseInt(value * 100, 10)}%`;
-  }
+  },
 
-  static parseAngle(string, notStandard) {
+  parseAngle: function(string, notStandard) {
     if (typeof string === 'string' && string.includes('deg')) {
       string = string.replace('deg', '');
     }
     if (!isNaN(string)) {
       if (notStandard) {
-        string = GradientString.fixOldAngle(string);
+        string = this.fixOldAngle(string);
       }
     }
     if (typeof string === 'string') {
@@ -201,16 +206,16 @@ export default class GradientString {
       }
     }
     return value;
-  }
+  },
 
-  static fixOldAngle(value) {
+  fixOldAngle: function(value) {
     value = parseFloat(value);
     value = Math.abs(450 - value) % 360;
     value = parseFloat(value.toFixed(3));
     return value;
-  }
+  },
 
-  static formatAngle(value, notStandard, useKeyword) {
+  formatAngle: function(value, notStandard, useKeyword) {
     value = parseInt(value, 10);
     if (useKeyword && angleKeywordMap.hasOwnProperty(value)) {
       value = angleKeywordMap[value];
@@ -219,7 +224,7 @@ export default class GradientString {
       }
     } else {
       if (notStandard) {
-        value = GradientString.fixOldAngle(value);
+        value = this.fixOldAngle(value);
       }
       value = `${value}deg`;
     }

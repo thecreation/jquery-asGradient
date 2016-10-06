@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import AsGradient from './asGradient';
 import info from './info';
+import GradientString from './gradientString';
 
 const OtherAsGradient = $.asGradient;
 
@@ -16,6 +17,6 @@ $.extend($.asGradient, {
     $.asGradient = OtherAsGradient;
     return jQueryAsGradient;
   }
-}, info);
+}, GradientString, info);
 
 export default $.asGradient;

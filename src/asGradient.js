@@ -5,10 +5,8 @@ import GradientString from './gradientString';
 import ColorStop from './colorStop';
 import GradientTypes from './gradientTypes';
 
-class AsGradient extends GradientString {
+class AsGradient {
   constructor(string, options) {
-    super();
-
     if (typeof string === 'object' && typeof options === 'undefined') {
       options = string;
       string = undefined;

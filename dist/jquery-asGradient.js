@@ -1,5 +1,5 @@
 /**
-* jQuery asGradient v0.3.0
+* jQuery asGradient v0.3.1
 * https://github.com/amazingSurge/jquery-asGradient
 *
 * Copyright (c) amazingSurge
@@ -46,32 +46,6 @@
       function(obj) {
         return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
       };
-
-    function _possibleConstructorReturn(self, call) {
-      if (!self) {
-        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
-
-      return call && (typeof call === "object" || typeof call === "function") ? call : self;
-    }
-
-    function _inherits(subClass, superClass) {
-      if (typeof superClass !== "function" && superClass !== null) {
-        throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-      }
-
-      subClass.prototype = Object.create(superClass && superClass.prototype, {
-        constructor: {
-          value: subClass,
-          enumerable: false,
-          writable: true,
-          configurable: true
-        }
-      });
-
-      if (superClass)
-        Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-    }
 
     function _classCallCheck(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -237,268 +211,254 @@
       };
     }();
 
-    var GradientString = function() {
-      function GradientString() {
-        _classCallCheck(this, GradientString);
-      }
+    var GradientString = {
+      matchString: function matchString(string) {
+        var matched = this.parseString(string);
 
-      _createClass(GradientString, null, [{
-        key: 'matchString',
-        value: function matchString(string) {
-          var matched = GradientString.parseString(string);
+        if (matched && matched.value && matched.value.stops && matched.value.stops.length > 1) {
 
-          if (matched && matched.value && matched.value.stops && matched.value.stops.length > 1) {
+          return true;
+        }
 
-            return true;
-          }
+        return false;
+      },
+
+      parseString: function parseString(string) {
+        string = _jquery2.default.trim(string);
+        var matched = void 0;
+
+        if ((matched = RegExpStrings.FULL.exec(string)) !== null) {
+          var value = this.parseParameters(matched[3]);
+
+          return {
+            prefix: typeof matched[1] === 'undefined' ? null : matched[1],
+            type: matched[2],
+            value: value
+          };
+        } else {
 
           return false;
         }
-      }, {
-        key: 'parseString',
-        value: function parseString(string) {
-          string = _jquery2.default.trim(string);
-          var matched = void 0;
+      },
 
-          if ((matched = RegExpStrings.FULL.exec(string)) !== null) {
+      parseParameters: function parseParameters(string) {
+        var matched = void 0;
 
-            return {
-              prefix: typeof matched[1] === 'undefined' ? null : matched[1],
-              type: matched[2],
-              value: GradientString.parseParameters(matched[3])
-            };
-          } else {
+        if ((matched = RegExpStrings.PARAMETERS.exec(string)) !== null) {
+          var stops = this.parseStops(matched[2]);
 
-            return false;
-          }
+          return {
+            angle: typeof matched[1] === 'undefined' ? 0 : matched[1],
+            stops: stops
+          };
+        } else {
+
+          return false;
         }
-      }, {
-        key: 'parseParameters',
-        value: function parseParameters(string) {
-          var matched = void 0;
+      },
 
-          if ((matched = RegExpStrings.PARAMETERS.exec(string)) !== null) {
+      parseStops: function parseStops(string) {
+        var _this = this;
 
-            return {
-              angle: typeof matched[1] === 'undefined' ? 0 : matched[1],
-              stops: GradientString.parseStops(matched[2])
-            };
-          } else {
+        var matched = void 0;
+        var result = [];
 
-            return false;
-          }
-        }
-      }, {
-        key: 'parseStops',
-        value: function parseStops(string) {
-          var matched = void 0;
-          var result = [];
+        if ((matched = string.match(RegExpStrings.STOPS)) !== null) {
 
-          if ((matched = string.match(RegExpStrings.STOPS)) !== null) {
+          _jquery2.default.each(matched,
 
-            _jquery2.default.each(matched,
+            function(i, item) {
+              var stop = _this.parseStop(item);
 
-              function(i, item) {
-                var stop = GradientString.parseStop(item);
-
-                if (stop) {
-                  result.push(stop);
-                }
+              if (stop) {
+                result.push(stop);
               }
-            );
+            }
+          );
 
-            return result;
-          } else {
+          return result;
+        } else {
 
-            return false;
-          }
+          return false;
         }
-      }, {
-        key: 'formatStops',
-        value: function formatStops(stops, cleanPosition) {
-          var stop = void 0;
-          var output = [];
-          var positions = [];
-          var colors = [];
-          var position = void 0;
+      },
 
-          for (var i = 0; i < stops.length; i++) {
-            stop = stops[i];
+      formatStops: function formatStops(stops, cleanPosition) {
+        var stop = void 0;
+        var output = [];
+        var positions = [];
+        var colors = [];
+        var position = void 0;
 
-            if (typeof stop.position === 'undefined' || stop.position === null) {
+        for (var i = 0; i < stops.length; i++) {
+          stop = stops[i];
 
-              if (i === 0) {
-                position = 0;
-              } else if (i === stops.length - 1) {
-                position = 1;
-              } else {
-                position = undefined;
-              }
+          if (typeof stop.position === 'undefined' || stop.position === null) {
+
+            if (i === 0) {
+              position = 0;
+            } else if (i === stops.length - 1) {
+              position = 1;
             } else {
-              position = stop.position;
+              position = undefined;
             }
-            positions.push(position);
-            colors.push(stop.color.toString());
+          } else {
+            position = stop.position;
           }
+          positions.push(position);
+          colors.push(stop.color.toString());
+        }
 
-          positions = function(data) {
-            var start = null;
-            var average = void 0;
+        positions = function(data) {
+          var start = null;
+          var average = void 0;
 
-            for (var _i = 0; _i < data.length; _i++) {
+          for (var _i = 0; _i < data.length; _i++) {
 
-              if (isNaN(data[_i])) {
+            if (isNaN(data[_i])) {
 
-                if (start === null) {
-                  start = _i;
-                  continue;
-                }
-              } else if (start) {
-                average = (data[_i] - data[start - 1]) / (_i - start + 1);
-
-                for (var j = start; j < _i; j++) {
-                  data[j] = data[start - 1] + (j - start + 1) * average;
-                }
-                start = null;
+              if (start === null) {
+                start = _i;
+                continue;
               }
-            }
+            } else if (start) {
+              average = (data[_i] - data[start - 1]) / (_i - start + 1);
 
-            return data;
-          }(positions);
-
-          for (var x = 0; x < stops.length; x++) {
-
-            if (cleanPosition && (x === 0 && positions[x] === 0 || x === stops.length - 1 && positions[x] === 1)) {
-              position = '';
-            } else {
-              position = ' ' + GradientString.formatPosition(positions[x]);
-            }
-
-            output.push(colors[x] + position);
-          }
-
-          return output.join(', ');
-        }
-      }, {
-        key: 'parseStop',
-        value: function parseStop(string) {
-          var matched = void 0;
-
-          if ((matched = RegExpStrings.STOP.exec(string)) !== null) {
-
-            return {
-              color: matched[1],
-              position: GradientString.parsePosition(matched[2])
-            };
-          } else {
-
-            return false;
-          }
-        }
-      }, {
-        key: 'parsePosition',
-        value: function parsePosition(string) {
-          if (typeof string === 'string' && string.substr(-1) === '%') {
-            string = parseFloat(string.slice(0, -1) / 100);
-          }
-
-          if (typeof string !== 'undefined' && string !== null) {
-
-            return parseFloat(string, 10);
-          } else {
-
-            return null;
-          }
-        }
-      }, {
-        key: 'formatPosition',
-        value: function formatPosition(value) {
-          return parseInt(value * 100, 10) + '%';
-        }
-      }, {
-        key: 'parseAngle',
-        value: function parseAngle(string, notStandard) {
-          if (typeof string === 'string' && string.includes('deg')) {
-            string = string.replace('deg', '');
-          }
-
-          if (!isNaN(string)) {
-
-            if (notStandard) {
-              string = GradientString.fixOldAngle(string);
-            }
-          }
-
-          if (typeof string === 'string') {
-            var directions = string.split(' ');
-
-            var filtered = [];
-
-            for (var i in directions) {
-
-              if (isDirection(directions[i])) {
-                filtered.push(directions[i].toLowerCase());
+              for (var j = start; j < _i; j++) {
+                data[j] = data[start - 1] + (j - start + 1) * average;
               }
-            }
-            var keyword = filtered.join(' ');
-
-            if (!string.includes('to ')) {
-              keyword = reverseDirection(keyword);
-            }
-            keyword = 'to ' + keyword;
-
-            if (keywordAngleMap.hasOwnProperty(keyword)) {
-              string = keywordAngleMap[keyword];
-            }
-          }
-          var value = parseFloat(string, 10);
-
-          if (value > 360) {
-            value %= 360;
-          } else if (value < 0) {
-            value %= -360;
-
-            if (value !== 0) {
-              value += 360;
+              start = null;
             }
           }
 
-          return value;
-        }
-      }, {
-        key: 'fixOldAngle',
-        value: function fixOldAngle(value) {
-          value = parseFloat(value);
-          value = Math.abs(450 - value) % 360;
-          value = parseFloat(value.toFixed(3));
+          return data;
+        }(positions);
 
-          return value;
-        }
-      }, {
-        key: 'formatAngle',
-        value: function formatAngle(value, notStandard, useKeyword) {
-          value = parseInt(value, 10);
+        for (var x = 0; x < stops.length; x++) {
 
-          if (useKeyword && angleKeywordMap.hasOwnProperty(value)) {
-            value = angleKeywordMap[value];
-
-            if (notStandard) {
-              value = reverseDirection(value.substr(3));
-            }
+          if (cleanPosition && (x === 0 && positions[x] === 0 || x === stops.length - 1 && positions[x] === 1)) {
+            position = '';
           } else {
-
-            if (notStandard) {
-              value = GradientString.fixOldAngle(value);
-            }
-            value = value + 'deg';
+            position = ' ' + this.formatPosition(positions[x]);
           }
 
-          return value;
+          output.push(colors[x] + position);
         }
-      }]);
 
-      return GradientString;
-    }();
+        return output.join(', ');
+      },
+
+      parseStop: function parseStop(string) {
+        var matched = void 0;
+
+        if ((matched = RegExpStrings.STOP.exec(string)) !== null) {
+          var position = this.parsePosition(matched[2]);
+
+          return {
+            color: matched[1],
+            position: position
+          };
+        } else {
+
+          return false;
+        }
+      },
+
+      parsePosition: function parsePosition(string) {
+        if (typeof string === 'string' && string.substr(-1) === '%') {
+          string = parseFloat(string.slice(0, -1) / 100);
+        }
+
+        if (typeof string !== 'undefined' && string !== null) {
+
+          return parseFloat(string, 10);
+        } else {
+
+          return null;
+        }
+      },
+
+      formatPosition: function formatPosition(value) {
+        return parseInt(value * 100, 10) + '%';
+      },
+
+      parseAngle: function parseAngle(string, notStandard) {
+        if (typeof string === 'string' && string.includes('deg')) {
+          string = string.replace('deg', '');
+        }
+
+        if (!isNaN(string)) {
+
+          if (notStandard) {
+            string = this.fixOldAngle(string);
+          }
+        }
+
+        if (typeof string === 'string') {
+          var directions = string.split(' ');
+
+          var filtered = [];
+
+          for (var i in directions) {
+
+            if (isDirection(directions[i])) {
+              filtered.push(directions[i].toLowerCase());
+            }
+          }
+          var keyword = filtered.join(' ');
+
+          if (!string.includes('to ')) {
+            keyword = reverseDirection(keyword);
+          }
+          keyword = 'to ' + keyword;
+
+          if (keywordAngleMap.hasOwnProperty(keyword)) {
+            string = keywordAngleMap[keyword];
+          }
+        }
+        var value = parseFloat(string, 10);
+
+        if (value > 360) {
+          value %= 360;
+        } else if (value < 0) {
+          value %= -360;
+
+          if (value !== 0) {
+            value += 360;
+          }
+        }
+
+        return value;
+      },
+
+      fixOldAngle: function fixOldAngle(value) {
+        value = parseFloat(value);
+        value = Math.abs(450 - value) % 360;
+        value = parseFloat(value.toFixed(3));
+
+        return value;
+      },
+
+      formatAngle: function formatAngle(value, notStandard, useKeyword) {
+        value = parseInt(value, 10);
+
+        if (useKeyword && angleKeywordMap.hasOwnProperty(value)) {
+          value = angleKeywordMap[value];
+
+          if (notStandard) {
+            value = reverseDirection(value.substr(3));
+          }
+        } else {
+
+          if (notStandard) {
+            value = this.fixOldAngle(value);
+          }
+          value = value + 'deg';
+        }
+
+        return value;
+      }
+    };
 
     var ColorStop = function() {
       function ColorStop(color, position, gradient) {
@@ -584,33 +544,27 @@
       }
     };
 
-    var AsGradient = function(_GradientString) {
-      _inherits(AsGradient, _GradientString);
-
+    var AsGradient = function() {
       function AsGradient(string, options) {
         _classCallCheck(this, AsGradient);
-
-        var _this = _possibleConstructorReturn(this, (AsGradient.__proto__ || Object.getPrototypeOf(AsGradient)).call(this));
 
         if ((typeof string === 'undefined' ? 'undefined' : _typeof(string)) === 'object' && typeof options === 'undefined') {
           options = string;
           string = undefined;
         }
-        _this.value = {
+        this.value = {
           angle: 0,
           stops: []
         };
-        _this.options = _jquery2.default.extend(true, {}, DEFAULTS, options);
+        this.options = _jquery2.default.extend(true, {}, DEFAULTS, options);
 
-        _this._type = 'LINEAR';
-        _this._prefix = null;
-        _this.length = _this.value.stops.length;
-        _this.current = 0;
-        _this._stopIdCount = 0;
+        this._type = 'LINEAR';
+        this._prefix = null;
+        this.length = this.value.stops.length;
+        this.current = 0;
+        this._stopIdCount = 0;
 
-        _this.init(string);
-
-        return _this;
+        this.init(string);
       }
 
       _createClass(AsGradient, [{
@@ -869,10 +823,10 @@
       }]);
 
       return AsGradient;
-    }(GradientString);
+    }();
 
     var info = {
-      version: '0.3.0'
+      version: '0.3.1'
     };
 
     var OtherAsGradient = _jquery2.default.asGradient;
@@ -894,7 +848,7 @@
 
         return jQueryAsGradient;
       }
-    }, info);
+    }, GradientString, info);
 
     var main = _jquery2.default.asGradient;
 
