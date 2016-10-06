@@ -1,563 +1,903 @@
-/*! asGradient - v0.2.1 - 2014-08-27
-* https://github.com/amazingSurge/asGradient
-* Copyright (c) 2014 amazingSurge; Licensed GPL */
-(function(window, document, $, Color, undefined) {
+/**
+* jQuery asGradient v0.3.0
+* https://github.com/amazingSurge/jquery-asGradient
+*
+* Copyright (c) amazingSurge
+* Released under the LGPL-3.0 license
+*/
+(function(global, factory) {
+  if (typeof define === "function" && define.amd) {
+    define('AsGradient', ['exports', 'jquery', 'jquery-asColor'], factory);
+  } else if (typeof exports !== "undefined") {
+    factory(exports, require('jquery'), require('jquery-asColor'));
+  } else {
+    var mod = {
+      exports: {}
+    };
+    factory(mod.exports, global.jQuery, global.AsColor);
+    global.AsGradient = mod.exports;
+  }
+})(this,
+
+  function(exports, _jquery, _jqueryAsColor) {
     'use strict';
 
-    function getPrefix() {
-        var ua = window.navigator.userAgent;
-        var prefix = '';
-        if (/MSIE/g.test(ua)) {
-            prefix = '-ms-';
-        } else if (/Firefox/g.test(ua)) {
-            prefix = '-moz-';
-        } else if (/(WebKit)/i.test(ua)) {
-            prefix = '-webkit-';
-        } else if (/Opera/g.test(ua)) {
-            prefix = '-o-';
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+
+    var _jquery2 = _interopRequireDefault(_jquery);
+
+    var _jqueryAsColor2 = _interopRequireDefault(_jqueryAsColor);
+
+    function _interopRequireDefault(obj) {
+      return obj && obj.__esModule ? obj : {
+        default: obj
+      };
+    }
+
+    var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ?
+
+      function(obj) {
+        return typeof obj;
+      }
+      :
+
+      function(obj) {
+        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+      };
+
+    function _possibleConstructorReturn(self, call) {
+      if (!self) {
+        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+      }
+
+      return call && (typeof call === "object" || typeof call === "function") ? call : self;
+    }
+
+    function _inherits(subClass, superClass) {
+      if (typeof superClass !== "function" && superClass !== null) {
+        throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+      }
+
+      subClass.prototype = Object.create(superClass && superClass.prototype, {
+        constructor: {
+          value: subClass,
+          enumerable: false,
+          writable: true,
+          configurable: true
         }
-        return prefix;
+      });
+
+      if (superClass)
+        Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+    }
+
+    function _classCallCheck(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+      }
+    }
+
+    var _createClass = function() {
+      function defineProperties(target, props) {
+        for (var i = 0; i < props.length; i++) {
+          var descriptor = props[i];
+          descriptor.enumerable = descriptor.enumerable || false;
+          descriptor.configurable = true;
+
+          if ("value" in descriptor)
+            descriptor.writable = true;
+          Object.defineProperty(target, descriptor.key, descriptor);
+        }
+      }
+
+      return function(Constructor, protoProps, staticProps) {
+        if (protoProps)
+          defineProperties(Constructor.prototype, protoProps);
+
+        if (staticProps)
+          defineProperties(Constructor, staticProps);
+
+        return Constructor;
+      };
+    }();
+
+    var DEFAULTS = {
+      prefixes: ['-webkit-', '-moz-', '-ms-', '-o-'],
+      forceStandard: true,
+      angleUseKeyword: true,
+      emptyString: '',
+      degradationFormat: false,
+      cleanPosition: true,
+      color: {
+        format: false, // rgb, rgba, hsl, hsla, hex
+        hexUseName: false,
+        reduceAlpha: true,
+        shortenHex: true,
+        zeroAlphaAsTransparent: false,
+        invalidValue: {
+          r: 0,
+          g: 0,
+          b: 0,
+          a: 1
+        }
+      }
+    };
+
+    /* eslint no-extend-native: "off" */
+
+    if (!String.prototype.includes) {
+      String.prototype.includes = function(search, start) {
+        'use strict';
+
+        if (typeof start !== 'number') {
+          start = 0;
+        }
+
+        if (start + search.length > this.length) {
+
+          return false;
+        }
+
+        return this.indexOf(search, start) !== -1;
+      }
+      ;
+    }
+
+    function getPrefix() {
+      var ua = window.navigator.userAgent;
+      var prefix = '';
+
+      if (/MSIE/g.test(ua)) {
+        prefix = '-ms-';
+      } else if (/Firefox/g.test(ua)) {
+        prefix = '-moz-';
+      } else if (/(WebKit)/i.test(ua)) {
+        prefix = '-webkit-';
+      } else if (/Opera/g.test(ua)) {
+        prefix = '-o-';
+      }
+
+      return prefix;
     }
 
     function flip(o) {
-        var flipped = {};
-        for (var i in o) {
-            if (o.hasOwnProperty(i)) {
-                flipped[o[i]] = i;
-            }
+      var flipped = {};
+
+      for (var i in o) {
+
+        if (o.hasOwnProperty(i)) {
+          flipped[o[i]] = i;
         }
-        return flipped;
+      }
+
+      return flipped;
     }
 
-    // function isPercentage(n) {
-    //     return typeof n === "string" && n.indexOf('%') != -1;
-    // }
-
     function reverseDirection(direction) {
-        var mapping = {
-            'top': 'bottom',
-            'right': 'left',
-            'bottom': 'top',
-            'left': 'right',
-            'right top': 'left bottom',
-            'top right': 'bottom left',
-            'bottom right': 'top left',
-            'right bottom': 'left top',
-            'left bottom': 'right top',
-            'bottom left': 'top right',
-            'top left': 'bottom right',
-            'left top': 'right bottom'
-        };
-        return mapping.hasOwnProperty(direction) ? mapping[direction] : direction;
+      var mapping = {
+        'top': 'bottom',
+        'right': 'left',
+        'bottom': 'top',
+        'left': 'right',
+        'right top': 'left bottom',
+        'top right': 'bottom left',
+        'bottom right': 'top left',
+        'right bottom': 'left top',
+        'left bottom': 'right top',
+        'bottom left': 'top right',
+        'top left': 'bottom right',
+        'left top': 'right bottom'
+      };
+
+      return mapping.hasOwnProperty(direction) ? mapping[direction] : direction;
     }
 
     function isDirection(n) {
-        var reg = /^(top|left|right|bottom)$/i;
-        return reg.test(n);
+      var reg = /^(top|left|right|bottom)$/i;
+
+      return reg.test(n);
     }
 
-    var RegExpStrings = (function() {
-            var color = /(?:rgba|rgb|hsla|hsl)\s*\([\s\d\.,%]+\)|#[a-z0-9]{3,6}|[a-z]+/i,
-                position = /\d{1,3}%/i,
-                angle = /(?:to ){0,1}(?:(?:top|left|right|bottom)\s*){1,2}|\d+deg/i,
-                stop = new RegExp('(' + color.source + ')\\s*(' + position.source + '){0,1}', 'i'),
-                stops = new RegExp(stop.source, 'gi'),
-                parameters = new RegExp('(?:(' + angle.source + ')){0,1}\\s*,{0,1}\\s*(.*?)\\s*', 'i'),
-                full = new RegExp('^(-webkit-|-moz-|-ms-|-o-){0,1}(linear|radial|repeating-linear)-gradient\\s*\\(\\s*('+ parameters.source +')\\s*\\)$', 'i');
-
-        return {
-            FULL: full,
-            ANGLE: angle,
-            COLOR: color,
-            POSITION: position,
-            STOP: stop,
-            STOPS: stops,
-            PARAMETERS: new RegExp('^' + parameters.source + '$', 'i')
-        };
-    })(),
-    GradientTypes = {
-        LINEAR: {
-            parse: function(result) {
-                return {
-                    r: (result[1].substr(-1) === '%') ? parseInt(result[1].slice(0, -1) * 2.55, 10) : parseInt(result[1], 10),
-                    g: (result[2].substr(-1) === '%') ? parseInt(result[2].slice(0, -1) * 2.55, 10) : parseInt(result[2], 10),
-                    b: (result[3].substr(-1) === '%') ? parseInt(result[3].slice(0, -1) * 2.55, 10) : parseInt(result[3], 10),
-                    a: 1
-                };
-            },
-            to: function(gradient, instance, prefix) {
-                if (gradient.stops.length === 0) {
-                    return instance.options.emptyString;
-                }
-                if (gradient.stops.length === 1) {
-                    return gradient.stops[0].color.to(instance.options.degradationFormat);
-                }
-
-                var standard = instance.options.forceStandard,
-                    _prefix = instance._prefix;
-                if (!_prefix) {
-                    standard = true;
-                }
-                if (prefix && -1 !== $.inArray(prefix, instance.options.prefixes)) {
-                    standard = false;
-                    _prefix = prefix;
-                }
-                var angle = Gradient.formatAngle(gradient.angle, standard, instance.options.angleUseKeyword);
-                var stops = Gradient.formatStops(gradient.stops, instance.options.cleanPosition);
-
-                var output = 'linear-gradient(' + angle + ', ' + stops + ')';
-                if (standard) {
-                    return output;
-                } else {
-                    return _prefix + output;
-                }
-            }
-        }
+    var keywordAngleMap = {
+      'to top': 0,
+      'to right': 90,
+      'to bottom': 180,
+      'to left': 270,
+      'to right top': 45,
+      'to top right': 45,
+      'to bottom right': 135,
+      'to right bottom': 135,
+      'to left bottom': 225,
+      'to bottom left': 225,
+      'to top left': 315,
+      'to left top': 315
     };
 
-    var Gradient = $.asGradient = function(string, options) {
-        if (typeof string === 'object' && typeof options === 'undefined') {
-            options = string;
-            string = undefined;
-        }
-        this.value = {
-            angle: 0,
-            stops: []
-        };
-        this.options = $.extend(true, {}, Gradient.defaults, options);
+    var angleKeywordMap = flip(keywordAngleMap);
 
-        this._type = 'LINEAR';
-        this._prefix = null;
-        this.length = this.value.stops.length;
-        this.current = 0;
-        this._stop_id_count = 0;
+    var RegExpStrings = function() {
+      var color = /(?:rgba|rgb|hsla|hsl)\s*\([\s\d\.,%]+\)|#[a-z0-9]{3,6}|[a-z]+/i;
+      var position = /\d{1,3}%/i;
+      var angle = /(?:to ){0,1}(?:(?:top|left|right|bottom)\s*){1,2}|\d+deg/i;
+      var stop = new RegExp('(' + color.source + ')\\s*(' + position.source + '){0,1}', 'i');
+      var stops = new RegExp(stop.source, 'gi');
+      var parameters = new RegExp('(?:(' + angle.source + ')){0,1}\\s*,{0,1}\\s*(.*?)\\s*', 'i');
+      var full = new RegExp('^(-webkit-|-moz-|-ms-|-o-){0,1}(linear|radial|repeating-linear)-gradient\\s*\\(\\s*(' + parameters.source + ')\\s*\\)$', 'i');
 
-        this.init(string);
-    };
+      return {
+        FULL: full,
+        ANGLE: angle,
+        COLOR: color,
+        POSITION: position,
+        STOP: stop,
+        STOPS: stops,
+        PARAMETERS: new RegExp('^' + parameters.source + '$', 'i')
+      };
+    }();
 
-    Gradient.prototype = {
-        constructor: Gradient,
-        init: function(string) {
-            if (string) {
-                this.fromString(string);
-            }
-        },
-        val: function(value) {
-            if (typeof value === 'undefined') {
-                return this.toString();
-            } else {
-                this.fromString(value);
-                return this;
-            }
-        },
-        angle: function(value) {
-            if (typeof value === 'undefined') {
-                return this.value.angle;
-            } else {
-                this.value.angle = Gradient.parseAngle(value);
-            }
-        },
-        append: function(color, position) {
-            return this.insert(color, position, this.length);
-        },
-        reorder: function(){
-            if(this.length < 2){
-                return;
-            }
+    var GradientString = function() {
+      function GradientString() {
+        _classCallCheck(this, GradientString);
+      }
 
-            this.value.stops = this.value.stops.sort(function(a,b){
-                return a.position - b.position;
-            });
-        },
-        insert: function(color, position, index) {
-            if (typeof index === 'undefined') {
-                index = this.current;
-            }
-            var format;
-            if (this.options.forceColorFormat) {
-                format = this.options.forceColorFormat;
-            }
-            var self = this;
-            var ColorStop = function(color, position){
-                this.color = new Color(color, format, self.options.color),
-                this.position = Gradient.parsePosition(position);
-                this.id = ++self._stop_id_count;
-            };
+      _createClass(GradientString, null, [{
+        key: 'matchString',
+        value: function matchString(string) {
+          var matched = GradientString.parseString(string);
 
-            ColorStop.prototype = {
-                constructor: ColorStop,
-                setPosition: function(string) {
-                    var position = Gradient.parsePosition(string);
-                    if(this.position !== position){
-                        this.position = position;
-                        self.reorder();
-                    }
-                },
-                setColor: function(string){
-                    this.color.fromString(string);
-                },
-                remove: function(){
-                    self.removeById(this.id);
-                }
-            };
+          if (matched && matched.value && matched.value.stops && matched.value.stops.length > 1) {
 
-            var stop = new ColorStop(color, position);
-
-            this.value.stops.splice(index, 0, stop);
-
-            this.length = this.length + 1;
-            this.current = index;
-            return stop;
-        },
-        getById: function(id) {
-            if(this.length > 0){
-                for(var i in this.value.stops){
-                    if(id === this.value.stops[i].id){
-                        return this.value.stops[i];
-                    }
-                }
-            }
-            return false;
-        },
-        removeById: function(id){
-            var index = this.getIndexById(id);
-            if(index){
-                this.remove(index);
-            }
-        },
-        getIndexById: function(id){
-            var index = 0;
-            for(var i in this.value.stops){
-                if(id === this.value.stops[i].id){
-                    return index;
-                }
-                index ++;
-            }
-            return false;
-        },
-        getCurrent: function(){
-            return this.value.stops[this.current];
-        },
-        setCurrentById: function(id){
-            var index = 0;
-            for(var i in this.value.stops){
-                if(this.value.stops[i].id !== id){
-                    index ++;
-                } else {
-                    this.current = index;
-                }
-            }
-        },
-        get: function(index) {
-            if (typeof index === 'undefined') {
-                index = this.current;
-            }
-            if (index >= 0 && index < this.length) {
-                this.current = index;
-                return this.value.stops[index];
-            } else {
-                return false;
-            }
-        },
-        remove: function(index) {
-            if (typeof index === 'undefined') {
-                index = this.current;
-            }
-            if (index >= 0 && index < this.length) {
-                this.value.stops.splice(index, 1);
-                this.length = this.length - 1;
-                this.current = index - 1;
-            }
-        },
-        empty: function() {
-            this.value.stops = [];
-            this.length = 0;
-            this.current = 0;
-        },
-        reset: function() {
-            this.value._angle = 0;
-            this.empty();
-            this._prefix = null;
-            this._type = 'LINEAR';
-        },
-        type: function(type) {
-            if (typeof type === 'string' && (type = type.toUpperCase()) && typeof GradientTypes[type] !== 'undefined') {
-                this._type = type;
-            } else {
-                return this._type;
-            }
-        },
-        fromString: function(string) {
-            this.reset();
-
-            var result = Gradient.parseString(string);
-            if (result) {
-                this._prefix = result.prefix;
-                this.type(result.type);
-                if (result.value) {
-                    this.value.angle = Gradient.parseAngle(result.value.angle, this._prefix !== null);
-                    var self = this;
-                    $.each(result.value.stops, function(i, stop) {
-                        self.append(stop.color, stop.position);
-                    });
-                }
-            }
-        },
-        toString: function(prefix) {
-            if(prefix === true){
-                prefix = getPrefix();
-            }
-            return GradientTypes[this.type()].to(this.value, this, prefix);
-        },
-        matchString: function(string){
-            return Gradient.matchString(string);
-        },
-        toStringWithAngle: function(angle, prefix){
-            var value = $.extend(true, {}, this.value);
-            value.angle = Gradient.parseAngle(angle);
-
-            if(prefix === true){
-                prefix = getPrefix();
-            }
-
-            return GradientTypes[this.type()].to(value, this, prefix);
-        },
-        getPrefixedStrings: function() {
-            var strings = [];
-            for (var i in this.options.prefixes) {
-                strings.push(this.toString(this.options.prefixes[i]));
-            }
-            return strings;
-        }
-    };
-    Gradient.matchString = function(string) {
-        var matched = Gradient.parseString(string);
-        if(matched && matched.value && matched.value.stops && matched.value.stops.length > 1){
             return true;
-        }
-        return false;
-    };
-    Gradient.parseString = function(string) {
-        string = $.trim(string);
-        var matched;
-        if ((matched = RegExpStrings.FULL.exec(string)) != null) {
-            return {
-                prefix: (typeof matched[1] === 'undefined') ? null : matched[1],
-                type: matched[2],
-                value: Gradient.parseParameters(matched[3])
-            };
-        } else {
-            return false;
-        }
-    };
-    Gradient.parseParameters = function(string) {
-        var matched;
-        if ((matched = RegExpStrings.PARAMETERS.exec(string)) != null) {
-            return {
-                angle: (typeof matched[1] === 'undefined') ? 0 : matched[1],
-                stops: Gradient.parseStops(matched[2])
-            };
-        } else {
-            return false;
-        }
-    };
-    Gradient.parseStops = function(string) {
-        var matched, result = [];
-        if ((matched = string.match(RegExpStrings.STOPS)) != null) {
+          }
 
-            $.each(matched, function(i, item) {
-                var stop = Gradient.parseStop(item);
+          return false;
+        }
+      }, {
+        key: 'parseString',
+        value: function parseString(string) {
+          string = _jquery2.default.trim(string);
+          var matched = void 0;
+
+          if ((matched = RegExpStrings.FULL.exec(string)) !== null) {
+
+            return {
+              prefix: typeof matched[1] === 'undefined' ? null : matched[1],
+              type: matched[2],
+              value: GradientString.parseParameters(matched[3])
+            };
+          } else {
+
+            return false;
+          }
+        }
+      }, {
+        key: 'parseParameters',
+        value: function parseParameters(string) {
+          var matched = void 0;
+
+          if ((matched = RegExpStrings.PARAMETERS.exec(string)) !== null) {
+
+            return {
+              angle: typeof matched[1] === 'undefined' ? 0 : matched[1],
+              stops: GradientString.parseStops(matched[2])
+            };
+          } else {
+
+            return false;
+          }
+        }
+      }, {
+        key: 'parseStops',
+        value: function parseStops(string) {
+          var matched = void 0;
+          var result = [];
+
+          if ((matched = string.match(RegExpStrings.STOPS)) !== null) {
+
+            _jquery2.default.each(matched,
+
+              function(i, item) {
+                var stop = GradientString.parseStop(item);
+
                 if (stop) {
-                    result.push(stop);
+                  result.push(stop);
                 }
-            });
-            return result;
-        } else {
-            return false;
-        }
-    };
-    Gradient.formatStops = function(stops, cleanPosition) {
-        var stop, output = [],
-            positions = [],
-            colors = [],
-            position;
+              }
+            );
 
-        for (var i = 0; i < stops.length; i++) {
+            return result;
+          } else {
+
+            return false;
+          }
+        }
+      }, {
+        key: 'formatStops',
+        value: function formatStops(stops, cleanPosition) {
+          var stop = void 0;
+          var output = [];
+          var positions = [];
+          var colors = [];
+          var position = void 0;
+
+          for (var i = 0; i < stops.length; i++) {
             stop = stops[i];
-            if (typeof stop.position === 'undefined') {
-                if (i === 0) {
-                    position = 0;
-                } else if (i === stops.length - 1) {
-                    position = 1;
-                } else {
-                    position = undefined;
-                }
+
+            if (typeof stop.position === 'undefined' || stop.position === null) {
+
+              if (i === 0) {
+                position = 0;
+              } else if (i === stops.length - 1) {
+                position = 1;
+              } else {
+                position = undefined;
+              }
             } else {
-                position = stop.position;
+              position = stop.position;
             }
             positions.push(position);
             colors.push(stop.color.toString());
-        }
+          }
 
+          positions = function(data) {
+            var start = null;
+            var average = void 0;
 
-        positions = (function(data) {
-            var start = null,
-                average;
-            for (var i = 0; i < data.length; i++) {
-                if (isNaN(data[i])) {
-                    if (start === null) {
-                        start = i;
-                        continue;
-                    }
-                } else if (start) {
-                    average = (data[i] - data[start - 1]) / (i - start + 1);
-                    for (var j = start; j < i; j++) {
-                        data[j] = data[start - 1] + (j - start + 1) * average;
-                    }
-                    start = null;
+            for (var _i = 0; _i < data.length; _i++) {
+
+              if (isNaN(data[_i])) {
+
+                if (start === null) {
+                  start = _i;
+                  continue;
                 }
+              } else if (start) {
+                average = (data[_i] - data[start - 1]) / (_i - start + 1);
+
+                for (var j = start; j < _i; j++) {
+                  data[j] = data[start - 1] + (j - start + 1) * average;
+                }
+                start = null;
+              }
             }
 
             return data;
-        })(positions);
+          }(positions);
 
-        for (var x = 0; x < stops.length; x++) {
-            if (cleanPosition && ((x === 0 && positions[x] === 0) || (x === stops.length - 1 && positions[x] === 1))) {
-                position = '';
+          for (var x = 0; x < stops.length; x++) {
+
+            if (cleanPosition && (x === 0 && positions[x] === 0 || x === stops.length - 1 && positions[x] === 1)) {
+              position = '';
             } else {
-                position = ' ' + Gradient.formatPosition(positions[x]);
+              position = ' ' + GradientString.formatPosition(positions[x]);
             }
 
             output.push(colors[x] + position);
-        }
-        return output.join(', ');
-    };
-    Gradient.parseStop = function(string) {
-        var matched;
-        if ((matched = RegExpStrings.STOP.exec(string)) != null) {
-            return {
-                color: matched[1],
-                position: Gradient.parsePosition(matched[2])
-            };
-        } else {
-            return false;
-        }
-    };
-    Gradient.parsePosition = function(string) {
-        if (typeof string === 'string' && string.substr(-1) === '%') {
-            string = parseFloat(string.slice(0, -1) / 100);
-        }
+          }
 
-        return string;
-    };
-    Gradient.formatPosition = function(value) {
-        return parseInt(value * 100, 10) + '%';
-    };
-    Gradient.parseAngle = function(string, notStandard) {
-        if (typeof string === 'string' && string.indexOf('deg') !== -1) {
+          return output.join(', ');
+        }
+      }, {
+        key: 'parseStop',
+        value: function parseStop(string) {
+          var matched = void 0;
+
+          if ((matched = RegExpStrings.STOP.exec(string)) !== null) {
+
+            return {
+              color: matched[1],
+              position: GradientString.parsePosition(matched[2])
+            };
+          } else {
+
+            return false;
+          }
+        }
+      }, {
+        key: 'parsePosition',
+        value: function parsePosition(string) {
+          if (typeof string === 'string' && string.substr(-1) === '%') {
+            string = parseFloat(string.slice(0, -1) / 100);
+          }
+
+          if (typeof string !== 'undefined' && string !== null) {
+
+            return parseFloat(string, 10);
+          } else {
+
+            return null;
+          }
+        }
+      }, {
+        key: 'formatPosition',
+        value: function formatPosition(value) {
+          return parseInt(value * 100, 10) + '%';
+        }
+      }, {
+        key: 'parseAngle',
+        value: function parseAngle(string, notStandard) {
+          if (typeof string === 'string' && string.includes('deg')) {
             string = string.replace('deg', '');
-        }
-        if (!isNaN(string)) {
+          }
+
+          if (!isNaN(string)) {
+
             if (notStandard) {
-                string = Gradient.fixOldAngle(string);
+              string = GradientString.fixOldAngle(string);
             }
-        }
-        if (typeof string === 'string') {
+          }
+
+          if (typeof string === 'string') {
             var directions = string.split(' ');
 
             var filtered = [];
+
             for (var i in directions) {
-                if (isDirection(directions[i])) {
-                    filtered.push(directions[i].toLowerCase());
-                }
+
+              if (isDirection(directions[i])) {
+                filtered.push(directions[i].toLowerCase());
+              }
             }
             var keyword = filtered.join(' ');
 
-            if (string.indexOf('to ') === -1) {
-                keyword = reverseDirection(keyword);
+            if (!string.includes('to ')) {
+              keyword = reverseDirection(keyword);
             }
             keyword = 'to ' + keyword;
-            if (Gradient.keywordAngleMap.hasOwnProperty(keyword)) {
-                string = Gradient.keywordAngleMap[keyword];
-            }
-        }
-        var value = parseFloat(string, 10);
 
-        if (value > 360) {
-            value = value % 360;
-        } else if (value < 0) {
-            value = value % -360;
+            if (keywordAngleMap.hasOwnProperty(keyword)) {
+              string = keywordAngleMap[keyword];
+            }
+          }
+          var value = parseFloat(string, 10);
+
+          if (value > 360) {
+            value %= 360;
+          } else if (value < 0) {
+            value %= -360;
 
             if (value !== 0) {
-                value = 360 + value;
+              value += 360;
             }
+          }
+
+          return value;
         }
-        return value;
-    };
-    Gradient.fixOldAngle = function(value) {
-        value = parseFloat(value);
-        value = Math.abs(450 - value) % 360;
-        value = parseFloat(value.toFixed(3));
-        return value;
-    };
-    Gradient.formatAngle = function(value, standard, useKeyword) {
-        value = parseInt(value, 10);
-        if (useKeyword && Gradient.angleKeywordMap.hasOwnProperty(value)) {
-            value = Gradient.angleKeywordMap[value];
-            if (!standard) {
-                value = reverseDirection(value.substr(3));
+      }, {
+        key: 'fixOldAngle',
+        value: function fixOldAngle(value) {
+          value = parseFloat(value);
+          value = Math.abs(450 - value) % 360;
+          value = parseFloat(value.toFixed(3));
+
+          return value;
+        }
+      }, {
+        key: 'formatAngle',
+        value: function formatAngle(value, notStandard, useKeyword) {
+          value = parseInt(value, 10);
+
+          if (useKeyword && angleKeywordMap.hasOwnProperty(value)) {
+            value = angleKeywordMap[value];
+
+            if (notStandard) {
+              value = reverseDirection(value.substr(3));
             }
-        } else {
-            if (!standard) {
-                value = Gradient.fixOldAngle(value);
+          } else {
+
+            if (notStandard) {
+              value = GradientString.fixOldAngle(value);
             }
             value = value + 'deg';
-        }
+          }
 
-        return value;
-    };
-    Gradient.defaults = {
-        prefixes: ['-webkit-', '-moz-', '-ms-', '-o-'],
-        forceStandard: true,
-        angleUseKeyword: true,
-        emptyString: '',
-        degradationFormat: false,
-        cleanPosition: true,
-        forceColorFormat: false, // rgb, rgba, hsl, hsla, hex
-        color: {
-            hexUseName: false,
-            reduceAlpha: true,
-            shortenHex: true,
-            zeroAlphaAsTransparent: false,
-            invalidValue: {
-                r: 0,
-                g: 0,
-                b: 0,
-                a: 1
-            }
+          return value;
         }
+      }]);
+
+      return GradientString;
+    }();
+
+    var ColorStop = function() {
+      function ColorStop(color, position, gradient) {
+        _classCallCheck(this, ColorStop);
+
+        this.color = (0, _jqueryAsColor2.default)(color, gradient.options.color);
+        this.position = GradientString.parsePosition(position);
+        this.id = ++gradient._stopIdCount;
+        this.gradient = gradient;
+      }
+
+      _createClass(ColorStop, [{
+        key: 'setPosition',
+        value: function setPosition(string) {
+          var position = GradientString.parsePosition(string);
+
+          if (this.position !== position) {
+            this.position = position;
+            this.gradient.reorder();
+          }
+        }
+      }, {
+        key: 'setColor',
+        value: function setColor(string) {
+          this.color.fromString(string);
+        }
+      }, {
+        key: 'remove',
+        value: function remove() {
+          this.gradient.removeById(this.id);
+        }
+      }]);
+
+      return ColorStop;
+    }();
+
+    var GradientTypes = {
+      LINEAR: {
+        parse: function parse(result) {
+          return {
+            r: result[1].substr(-1) === '%' ? parseInt(result[1].slice(0, -1) * 2.55, 10) : parseInt(result[1], 10),
+            g: result[2].substr(-1) === '%' ? parseInt(result[2].slice(0, -1) * 2.55, 10) : parseInt(result[2], 10),
+            b: result[3].substr(-1) === '%' ? parseInt(result[3].slice(0, -1) * 2.55, 10) : parseInt(result[3], 10),
+            a: 1
+          };
+        },
+        to: function to(gradient, instance, prefix) {
+          if (gradient.stops.length === 0) {
+
+            return instance.options.emptyString;
+          }
+
+          if (gradient.stops.length === 1) {
+
+            return gradient.stops[0].color.to(instance.options.degradationFormat);
+          }
+
+          var standard = instance.options.forceStandard;
+          var _prefix = instance._prefix;
+
+          if (!_prefix) {
+            standard = true;
+          }
+
+          if (prefix && -1 !== _jquery2.default.inArray(prefix, instance.options.prefixes)) {
+            standard = false;
+            _prefix = prefix;
+          }
+
+          var angle = GradientString.formatAngle(gradient.angle, !standard, instance.options.angleUseKeyword);
+          var stops = GradientString.formatStops(gradient.stops, instance.options.cleanPosition);
+
+          var output = 'linear-gradient(' + angle + ', ' + stops + ')';
+
+          if (standard) {
+
+            return output;
+          } else {
+
+            return _prefix + output;
+          }
+        }
+      }
     };
-    Gradient.keywordAngleMap = {
-        'to top': 0,
-        'to right': 90,
-        'to bottom': 180,
-        'to left': 270,
-        'to right top': 45,
-        'to top right': 45,
-        'to bottom right': 135,
-        'to right bottom': 135,
-        'to left bottom': 225,
-        'to bottom left': 225,
-        'to top left': 315,
-        'to left top': 315
+
+    var AsGradient = function(_GradientString) {
+      _inherits(AsGradient, _GradientString);
+
+      function AsGradient(string, options) {
+        _classCallCheck(this, AsGradient);
+
+        var _this = _possibleConstructorReturn(this, (AsGradient.__proto__ || Object.getPrototypeOf(AsGradient)).call(this));
+
+        if ((typeof string === 'undefined' ? 'undefined' : _typeof(string)) === 'object' && typeof options === 'undefined') {
+          options = string;
+          string = undefined;
+        }
+        _this.value = {
+          angle: 0,
+          stops: []
+        };
+        _this.options = _jquery2.default.extend(true, {}, DEFAULTS, options);
+
+        _this._type = 'LINEAR';
+        _this._prefix = null;
+        _this.length = _this.value.stops.length;
+        _this.current = 0;
+        _this._stopIdCount = 0;
+
+        _this.init(string);
+
+        return _this;
+      }
+
+      _createClass(AsGradient, [{
+        key: 'init',
+        value: function init(string) {
+          if (string) {
+            this.fromString(string);
+          }
+        }
+      }, {
+        key: 'val',
+        value: function val(value) {
+          if (typeof value === 'undefined') {
+
+            return this.toString();
+          } else {
+            this.fromString(value);
+
+            return this;
+          }
+        }
+      }, {
+        key: 'angle',
+        value: function angle(value) {
+          if (typeof value === 'undefined') {
+
+            return this.value.angle;
+          } else {
+            this.value.angle = GradientString.parseAngle(value);
+
+            return this;
+          }
+        }
+      }, {
+        key: 'append',
+        value: function append(color, position) {
+          return this.insert(color, position, this.length);
+        }
+      }, {
+        key: 'reorder',
+        value: function reorder() {
+          if (this.length < 2) {
+
+            return;
+          }
+
+          this.value.stops = this.value.stops.sort(
+
+            function(a, b) {
+              return a.position - b.position;
+            }
+          );
+        }
+      }, {
+        key: 'insert',
+        value: function insert(color, position, index) {
+          if (typeof index === 'undefined') {
+            index = this.current;
+          }
+
+          var stop = new ColorStop(color, position, this);
+
+          this.value.stops.splice(index, 0, stop);
+
+          this.length = this.length + 1;
+          this.current = index;
+
+          return stop;
+        }
+      }, {
+        key: 'getById',
+        value: function getById(id) {
+          if (this.length > 0) {
+
+            for (var i in this.value.stops) {
+
+              if (id === this.value.stops[i].id) {
+
+                return this.value.stops[i];
+              }
+            }
+          }
+
+          return false;
+        }
+      }, {
+        key: 'removeById',
+        value: function removeById(id) {
+          var index = this.getIndexById(id);
+
+          if (index) {
+            this.remove(index);
+          }
+        }
+      }, {
+        key: 'getIndexById',
+        value: function getIndexById(id) {
+          var index = 0;
+
+          for (var i in this.value.stops) {
+
+            if (id === this.value.stops[i].id) {
+
+              return index;
+            }
+            index++;
+          }
+
+          return false;
+        }
+      }, {
+        key: 'getCurrent',
+        value: function getCurrent() {
+          return this.value.stops[this.current];
+        }
+      }, {
+        key: 'setCurrentById',
+        value: function setCurrentById(id) {
+          var index = 0;
+
+          for (var i in this.value.stops) {
+
+            if (this.value.stops[i].id !== id) {
+              index++;
+            } else {
+              this.current = index;
+            }
+          }
+        }
+      }, {
+        key: 'get',
+        value: function get(index) {
+          if (typeof index === 'undefined') {
+            index = this.current;
+          }
+
+          if (index >= 0 && index < this.length) {
+            this.current = index;
+
+            return this.value.stops[index];
+          } else {
+
+            return false;
+          }
+        }
+      }, {
+        key: 'remove',
+        value: function remove(index) {
+          if (typeof index === 'undefined') {
+            index = this.current;
+          }
+
+          if (index >= 0 && index < this.length) {
+            this.value.stops.splice(index, 1);
+            this.length = this.length - 1;
+            this.current = index - 1;
+          }
+        }
+      }, {
+        key: 'empty',
+        value: function empty() {
+          this.value.stops = [];
+          this.length = 0;
+          this.current = 0;
+        }
+      }, {
+        key: 'reset',
+        value: function reset() {
+          this.value._angle = 0;
+          this.empty();
+          this._prefix = null;
+          this._type = 'LINEAR';
+        }
+      }, {
+        key: 'type',
+        value: function type(_type) {
+          if (typeof _type === 'string' && (_type = _type.toUpperCase()) && typeof GradientTypes[_type] !== 'undefined') {
+            this._type = _type;
+
+            return this;
+          } else {
+
+            return this._type;
+          }
+        }
+      }, {
+        key: 'fromString',
+        value: function fromString(string) {
+          var _this2 = this;
+
+          this.reset();
+
+          var result = GradientString.parseString(string);
+
+          if (result) {
+            this._prefix = result.prefix;
+            this.type(result.type);
+
+            if (result.value) {
+              this.value.angle = GradientString.parseAngle(result.value.angle, this._prefix !== null);
+
+              _jquery2.default.each(result.value.stops,
+
+                function(i, stop) {
+                  _this2.append(stop.color, stop.position);
+                }
+              );
+            }
+          }
+        }
+      }, {
+        key: 'toString',
+        value: function toString(prefix) {
+          if (prefix === true) {
+            prefix = getPrefix();
+          }
+
+          return GradientTypes[this.type()].to(this.value, this, prefix);
+        }
+      }, {
+        key: 'matchString',
+        value: function matchString(string) {
+          return GradientString.matchString(string);
+        }
+      }, {
+        key: 'toStringWithAngle',
+        value: function toStringWithAngle(angle, prefix) {
+          var value = _jquery2.default.extend(true, {}, this.value);
+          value.angle = GradientString.parseAngle(angle);
+
+          if (prefix === true) {
+            prefix = getPrefix();
+          }
+
+          return GradientTypes[this.type()].to(value, this, prefix);
+        }
+      }, {
+        key: 'getPrefixedStrings',
+        value: function getPrefixedStrings() {
+          var strings = [];
+
+          for (var i in this.options.prefixes) {
+
+            if (Object.hasOwnProperty.call(this.options.prefixes, i)) {
+              strings.push(this.toString(this.options.prefixes[i]));
+            }
+          }
+
+          return strings;
+        }
+      }], [{
+        key: 'setDefaults',
+        value: function setDefaults(options) {
+          _jquery2.default.extend(true, DEFAULTS, _jquery2.default.isPlainObject(options) && options);
+        }
+      }]);
+
+      return AsGradient;
+    }(GradientString);
+
+    var info = {
+      version: '0.3.0'
     };
-    Gradient.angleKeywordMap = flip(Gradient.keywordAngleMap);
-}(window, document, jQuery, (function($) {
-    'use strict';
-    if ($.asColor === undefined) {
-        // console.info('lost dependency lib of $.asColor , please load it first !');
-        return false;
-    } else {
-        return $.asColor;
-    }
-}(jQuery))));
+
+    var OtherAsGradient = _jquery2.default.asGradient;
+
+    var jQueryAsGradient = function jQueryAsGradient() {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      return new (Function.prototype.bind.apply(AsGradient, [null].concat(args)))();
+    };
+
+    _jquery2.default.asGradient = jQueryAsGradient;
+    _jquery2.default.asGradient.Constructor = AsGradient;
+
+    _jquery2.default.extend(_jquery2.default.asGradient, {
+      noConflict: function noConflict() {
+        _jquery2.default.asGradient = OtherAsGradient;
+
+        return jQueryAsGradient;
+      }
+    }, info);
+
+    var main = _jquery2.default.asGradient;
+
+    exports.default = main;
+  }
+);
