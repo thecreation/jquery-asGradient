@@ -56,13 +56,14 @@ gulp build
 Done!
 
 ## Requirements
-`jquery-asGradient` requires the latest version of [`jQuery`](https://jquery.com/download/).
+`jquery-asGradient` requires the latest version of [`jQuery`](https://jquery.com/download/) and [`jQuery-asColor`](https://github.com/amazingSurge/jquery-asColor).
 
 ## Usage
 #### Including files:
 
 ```html
 <script src="/path/to/jquery.js"></script>
+<script src="/path/to/jquery-asColor.js"></script>
 <script src="/path/to/jquery-asGradient.js"></script>
 ```
 
@@ -117,7 +118,7 @@ var gradient = new AsGradient('linear-gradient(to bottom, yellow, blue)');
 gradient.toString();
 ```
 
-#### toString();
+#### toString()
 Get gradient string.
 ```javascript
 // Get standard string.
@@ -127,13 +128,13 @@ gradient.toString();
 gradient.toString('-moz-');
 ```
 
-#### fromString();
+#### fromString()
 Set values from gradient string.
 ```javascript
 gradient.fromString('linear-gradient(to bottom, yellow 0%, blue 100%)');
 ```
 
-#### getPrefixedStrings();
+#### getPrefixedStrings()
 Get prefixed strings array.
 ```javascript
 gradient.getPrefixedStrings();
