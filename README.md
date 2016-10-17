@@ -42,6 +42,11 @@ bower install jquery-asGradient --save
 npm install jquery-asGradient --save
 ```
 
+#### Install From Yarn
+```sh
+yarn add jquery-asGradient
+```
+
 #### Build From Source
 If you want build from source:
 

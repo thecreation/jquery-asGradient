@@ -1,6 +1,6 @@
 {
   "name": "jquery-asGradient",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A jquery plugin used to manipulate css image gradient.",
   "main": "dist/jquery-asGradient.js",
   "copyright": "amazingSurge",

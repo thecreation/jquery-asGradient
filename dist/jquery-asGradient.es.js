@@ -1,5 +1,5 @@
 /**
-* jQuery asGradient v0.3.1
+* jQuery asGradient v0.3.2
 * https://github.com/amazingSurge/jquery-asGradient
 *
 * Copyright (c) amazingSurge
@@ -622,7 +622,7 @@ class AsGradient {
 }
 
 var info = {
-  version:'0.3.1'
+  version:'0.3.2'
 };
 
 const OtherAsGradient = $.asGradient;
@@ -635,6 +635,7 @@ $.asGradient = jQueryAsGradient;
 $.asGradient.Constructor = AsGradient;
 
 $.extend($.asGradient, {
+  setDefaults: AsGradient.setDefaults,
   noConflict: function() {
     $.asGradient = OtherAsGradient;
     return jQueryAsGradient;
