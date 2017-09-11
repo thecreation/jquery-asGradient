@@ -1,5 +1,5 @@
 /**
-* jQuery asGradient v0.3.2
+* jQuery asGradient v0.3.3
 * https://github.com/amazingSurge/jquery-asGradient
 *
 * Copyright (c) amazingSurge
@@ -337,7 +337,7 @@ var GradientString = {
 
     return value;
   }
-}
+};
 
 class ColorStop {
   constructor(color, position, gradient) {
@@ -622,14 +622,14 @@ class AsGradient {
 }
 
 var info = {
-  version:'0.3.2'
+  version:'0.3.3'
 };
 
 const OtherAsGradient = $.asGradient;
 
 const jQueryAsGradient = function(...args) {
   return new AsGradient(...args);
-}
+};
 
 $.asGradient = jQueryAsGradient;
 $.asGradient.Constructor = AsGradient;
